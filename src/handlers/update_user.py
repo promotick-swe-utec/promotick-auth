@@ -1,0 +1,44 @@
+import os
+
+from src.adapters.cognito_auth_adapter import CognitoAuthAdapter
+from src.adapters.dynamo_user_repository import DynamoUserRepository
+from src.domain.ports import UserNotFoundError
+from src.domain.services import UpdateUserService
+from src.domain.user import InvalidRoleError
+from src.handlers._http import claims, json_response, parse_body, require_admin
+
+# --- Wiring (cold start) ----------------------------------------------------
+_service = UpdateUserService(
+    repo=DynamoUserRepository(table_name=os.environ["USERS_TABLE_NAME"]),
+    auth=CognitoAuthAdapter(
+        user_pool_id=os.environ["USER_POOL_ID"],
+        client_id=os.environ["USER_POOL_CLIENT_ID"],
+    ),
+)
+
+
+def handler(event, context):
+    try:
+        require_admin(event)
+        path = event.get("pathParameters") or {}
+        user_id = path.get("user_id")
+        if not user_id:
+            return json_response(400, {"error": "user_id es requerido"})
+
+        body = parse_body(event)
+        actor = claims(event).get("custom:user_id") or claims(event).get("sub", "")
+
+        user = _service.update(
+            user_id=user_id,
+            actor_user_id=actor,
+            full_name=body.get("full_name"),
+            role=body.get("role"),
+            is_active=body.get("is_active"),
+        )
+        return json_response(200, {"user": user})
+    except (InvalidRoleError, ValueError) as e:
+        return json_response(400, {"error": str(e)})
+    except PermissionError as e:
+        return json_response(403, {"error": str(e)})
+    except UserNotFoundError as e:
+        return json_response(404, {"error": str(e)})

@@ -1,0 +1,73 @@
+service: promotick-auth
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: us-east-1
+  stage: ${opt:stage, 'dev'}
+  iam:
+    role: arn:aws:iam::${aws:accountId}:role/LabRole
+  environment:
+    USERS_TABLE_NAME: ${cf:promotick-infra-dynamodb.UsersTableName}
+    USER_POOL_ID: ${cf:promotick-infra-cognito.UserPoolId}
+    USER_POOL_CLIENT_ID: ${cf:promotick-infra-cognito.UserPoolClientId}
+  httpApi:
+    cors: true
+    authorizers:
+      cognitoJwt:
+        type: jwt
+        identitySource: $request.header.Authorization
+        issuerUrl:
+          Fn::Join:
+            - ""
+            - - "https://cognito-idp.${aws:region}.amazonaws.com/"
+              - ${cf:promotick-infra-cognito.UserPoolId}
+        audience:
+          - ${cf:promotick-infra-cognito.UserPoolClientId}
+
+package:
+  patterns:
+    - "!**"
+    - "src/**"
+    - "!**/__pycache__/**"
+
+functions:
+  login:
+    handler: src/handlers/login.handler
+    description: CU001 — Autenticación contra Cognito
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/login
+
+  createUser:
+    handler: src/handlers/create_user.handler
+    description: CU003 — Crear usuario (solo ADMIN). AdminCreateUser + perfil DynamoDB
+    events:
+      - httpApi:
+          method: POST
+          path: /users
+          authorizer:
+            name: cognitoJwt
+
+  listUsers:
+    handler: src/handlers/list_users.handler
+    description: CU003 — Listar usuarios (solo ADMIN)
+    events:
+      - httpApi:
+          method: GET
+          path: /users
+          authorizer:
+            name: cognitoJwt
+
+  updateUser:
+    handler: src/handlers/update_user.handler
+    description: CU003 — Actualizar usuario (rol, estado, nombre) — solo ADMIN
+    events:
+      - httpApi:
+          method: PATCH
+          path: /users/{user_id}
+          authorizer:
+            name: cognitoJwt
