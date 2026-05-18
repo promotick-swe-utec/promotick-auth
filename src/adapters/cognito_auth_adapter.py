@@ -75,7 +75,6 @@ class CognitoAuthAdapter(AuthProvider):
                     {"Name": "email", "Value": normalized},
                     {"Name": "email_verified", "Value": "true"},
                     {"Name": "name", "Value": full_name or normalized.split("@")[0]},
-                    {"Name": "custom:role", "Value": role},
                 ],
                 DesiredDeliveryMediums=["EMAIL"],
             )
@@ -91,6 +90,24 @@ class CognitoAuthAdapter(AuthProvider):
         sub = attrs.get("sub")
         if not sub:
             raise RuntimeError("Cognito no devolvió 'sub' al crear el usuario")
+
+        try:
+            self._cognito.admin_add_user_to_group(
+                UserPoolId=self._pool_id,
+                Username=normalized,
+                GroupName=role,
+            )
+        except ClientError as e:
+            self._cognito.admin_delete_user(
+                UserPoolId=self._pool_id, Username=normalized
+            )
+            code = e.response["Error"]["Code"]
+            if code == "ResourceNotFoundException":
+                raise RuntimeError(
+                    f"El grupo Cognito '{role}' no existe. Despliega promotick-infra-cognito."
+                ) from e
+            raise
+
         return sub
 
     def set_user_enabled(self, email: str, enabled: bool) -> None:
