@@ -5,6 +5,8 @@ from src.domain.ports import (
     AuthProvider,
     AuthTokens,
     InvalidCredentialsError,
+    InvalidPasswordError,
+    NewPasswordRequiredError,
     UserAlreadyExistsError,
     UserDisabledError,
     UserNotFoundError,
@@ -52,10 +54,58 @@ class CognitoAuthAdapter(AuthProvider):
 
         auth = resp.get("AuthenticationResult")
         if not auth:
-            # Cognito devolvió un Challenge en lugar de tokens
+            challenge = resp.get("ChallengeName")
+            if challenge == "NEW_PASSWORD_REQUIRED":
+                raise NewPasswordRequiredError(
+                    session=resp.get("Session", ""),
+                    email=email.strip().lower(),
+                )
             raise InvalidCredentialsError(
-                f"Login requiere paso adicional: {resp.get('ChallengeName')}"
+                f"Login requiere paso adicional: {challenge}"
             )
+        return self._tokens_from_auth_result(auth)
+
+    def respond_new_password_challenge(
+        self, email: str, new_password: str, session: str
+    ) -> AuthTokens:
+        normalized = email.strip().lower()
+        try:
+            resp = self._cognito.admin_respond_to_auth_challenge(
+                UserPoolId=self._pool_id,
+                ClientId=self._client_id,
+                ChallengeName="NEW_PASSWORD_REQUIRED",
+                Session=session,
+                ChallengeResponses={
+                    "USERNAME": normalized,
+                    "NEW_PASSWORD": new_password,
+                },
+            )
+        except ClientError as e:
+            code = e.response["Error"]["Code"]
+            message = e.response["Error"].get("Message", "")
+            if code == "InvalidPasswordException":
+                raise InvalidPasswordError(message) from e
+            if code == "InvalidParameterException":
+                raise InvalidPasswordError(message) from e
+            if code in ("NotAuthorizedException", "CodeMismatchException"):
+                raise InvalidCredentialsError(
+                    "Sesión expirada o inválida, vuelve a iniciar sesión"
+                ) from e
+            if code == "UserNotFoundException":
+                raise UserNotFoundError(
+                    f"Usuario {normalized} no existe en Cognito"
+                ) from e
+            raise
+
+        auth = resp.get("AuthenticationResult")
+        if not auth:
+            raise InvalidCredentialsError(
+                f"No se pudo completar el challenge: {resp.get('ChallengeName')}"
+            )
+        return self._tokens_from_auth_result(auth)
+
+    @staticmethod
+    def _tokens_from_auth_result(auth: dict) -> AuthTokens:
         return AuthTokens(
             id_token=auth["IdToken"],
             access_token=auth["AccessToken"],

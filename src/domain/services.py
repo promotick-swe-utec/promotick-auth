@@ -39,6 +39,32 @@ class LoginService:
         return LoginResult(tokens=tokens, user=user)
 
 
+class CompleteNewPasswordService:
+    def __init__(self, repo: UserRepository, auth: AuthProvider):
+        self._repo = repo
+        self._auth = auth
+
+    def complete(
+        self, email: str, new_password: str, session: str
+    ) -> LoginResult:
+        if not email or not new_password or not session:
+            raise InvalidCredentialsError(
+                "Email, nueva contraseña y session son obligatorios"
+            )
+
+        tokens = self._auth.respond_new_password_challenge(
+            email=email, new_password=new_password, session=session
+        )
+        user = self._repo.find_by_email(email.strip().lower())
+        if user is None:
+            raise UserNotFoundError(
+                "El usuario completó el challenge pero no tiene perfil en el sistema"
+            )
+        if not user.is_active:
+            raise UserDisabledError("Usuario inactivo")
+        return LoginResult(tokens=tokens, user=user)
+
+
 class CreateUserService:
 
     def __init__(self, repo: UserRepository, auth: AuthProvider):

@@ -29,6 +29,17 @@ class UserDisabledError(Exception):
     pass
 
 
+class InvalidPasswordError(Exception):
+    pass
+
+
+class NewPasswordRequiredError(Exception):
+    def __init__(self, session: str, email: str):
+        self.session = session
+        self.email = email
+        super().__init__("Se requiere establecer una nueva contraseña")
+
+
 class UserRepository(Protocol):
     def save_if_absent(self, user: User) -> bool:
         ...
@@ -58,3 +69,8 @@ class AuthProvider(Protocol):
 
     def set_user_enabled(self, email: str, enabled: bool) -> None:
         ... #Habilita/inhabilita el usuario en el IdP
+
+    def respond_new_password_challenge(
+        self, email: str, new_password: str, session: str
+    ) -> AuthTokens:
+        ... # Completa el challenge NEW_PASSWORD_REQUIRED y devuelve tokens

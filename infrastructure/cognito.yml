@@ -11,7 +11,15 @@ Resources:
         - email
       AdminCreateUserConfig:
         AllowAdminCreateUserOnly: true
-        UnusedAccountValidityDays: 7
+        UnusedAccountValidityDays: 1
+        InviteMessageTemplate:
+          EmailSubject: "Bienvenido a Promotick"
+          EmailMessage: |
+            <p>Hola,</p>
+            <p>Bienvenido a <strong>Promotick</strong>. Se ha creado una cuenta para el usuario <strong>{username}</strong>.</p>
+            <p>Tu contraseña temporal es: <strong>{####}</strong></p>
+            <p>Esta contraseña tiene una validez de <strong>24 horas</strong>. Si excediste este tiempo, comunícate con el administrador de la plataforma para que te genere una nueva.</p>
+            <p>Por seguridad, se te solicitará cambiarla en tu primer inicio de sesión.</p>
       Schema:
         - Name: email
           AttributeDataType: String

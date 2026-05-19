@@ -44,6 +44,14 @@ functions:
           method: POST
           path: /auth/login
 
+  completeNewPassword:
+    handler: src/handlers/complete_new_password.handler
+    description: Completa el new password del primer login
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/complete-new-password
+
   createUser:
     handler: src/handlers/create_user.handler
     description: Crear usuario (solo ADMIN)
