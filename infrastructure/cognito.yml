@@ -1,0 +1,108 @@
+Resources:
+  PromotickUserPool:
+    Type: AWS::Cognito::UserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      UserPoolName: ${self:service}-${self:provider.stage}
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+        UnusedAccountValidityDays: 7
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+        - Name: name
+          AttributeDataType: String
+          Required: false
+          Mutable: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      MfaConfiguration: "OFF"
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      UserPoolTags:
+        Project: Promotick
+        Stage: ${self:provider.stage}
+
+  PromotickUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: ${self:service}-${self:provider.stage}-web
+      UserPoolId:
+        Ref: PromotickUserPool
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      TokenValidityUnits:
+        AccessToken: hours
+        IdToken: hours
+        RefreshToken: days
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      RefreshTokenValidity: 30
+
+  AdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      UserPoolId:
+        Ref: PromotickUserPool
+      GroupName: ADMIN
+      Description: Administrador del sistema Promotick
+      Precedence: 1
+
+  EjecGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      UserPoolId:
+        Ref: PromotickUserPool
+      GroupName: EJEC
+      Description: Ejecutivo operativo
+      Precedence: 2
+
+  ViewerGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties:
+      UserPoolId:
+        Ref: PromotickUserPool
+      GroupName: VIEWER
+      Description: Solo lectura (tabla maestra)
+      Precedence: 3
+
+Outputs:
+  UserPoolId:
+    Description: ID del Cognito User Pool de Promotick
+    Value:
+      Ref: PromotickUserPool
+    Export:
+      Name: ${self:service}-${self:provider.stage}-UserPoolId
+
+  UserPoolArn:
+    Description: ARN del User Pool (para enganchar triggers o leer atributos desde otros stacks)
+    Value:
+      Fn::GetAtt: [PromotickUserPool, Arn]
+    Export:
+      Name: ${self:service}-${self:provider.stage}-UserPoolArn
+
+  UserPoolClientId:
+    Description: ID del App Client web que consume el frontend
+    Value:
+      Ref: PromotickUserPoolClient
+    Export:
+      Name: ${self:service}-${self:provider.stage}-UserPoolClientId

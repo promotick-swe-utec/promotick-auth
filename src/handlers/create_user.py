@@ -7,7 +7,6 @@ from src.domain.services import CreateUserService
 from src.domain.user import InvalidEmailError, InvalidRoleError
 from src.handlers._http import json_response, parse_body, require_admin
 
-# --- Wiring (cold start) ----------------------------------------------------
 _service = CreateUserService(
     repo=DynamoUserRepository(table_name=os.environ["USERS_TABLE_NAME"]),
     auth=CognitoAuthAdapter(
@@ -15,7 +14,6 @@ _service = CreateUserService(
         client_id=os.environ["USER_POOL_CLIENT_ID"],
     ),
 )
-
 
 def handler(event, context):
     try:

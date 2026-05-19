@@ -1,5 +1,4 @@
 import os
-
 from src.adapters.cognito_auth_adapter import CognitoAuthAdapter
 from src.adapters.dynamo_user_repository import DynamoUserRepository
 from src.domain.ports import UserNotFoundError
@@ -7,7 +6,6 @@ from src.domain.services import UpdateUserService
 from src.domain.user import InvalidRoleError
 from src.handlers._http import claims, json_response, parse_body, require_admin
 
-# --- Wiring (cold start) ----------------------------------------------------
 _service = UpdateUserService(
     repo=DynamoUserRepository(table_name=os.environ["USERS_TABLE_NAME"]),
     auth=CognitoAuthAdapter(

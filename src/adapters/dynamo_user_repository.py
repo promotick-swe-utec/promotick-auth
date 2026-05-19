@@ -1,20 +1,17 @@
 from typing import Optional, Sequence
-
 import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
-
 from src.domain.ports import UserNotFoundError, UserRepository
 from src.domain.user import User
 
 
 class DynamoUserRepository(UserRepository):
-    """Implementación de UserRepository sobre DynamoDB (tabla promotick_users)."""
 
     def __init__(self, table_name: str, resource=None):
         self._table = (resource or boto3.resource("dynamodb")).Table(table_name)
 
-    # ---------- helpers ----------
+    # Helpers 
 
     @staticmethod
     def _to_item(user: User) -> dict:
@@ -42,7 +39,7 @@ class DynamoUserRepository(UserRepository):
             updated_at=item.get("updated_at", item["created_at"]),
         )
 
-    # ---------- UserRepository ----------
+    # UserRepository 
 
     def save_if_absent(self, user: User) -> bool:
         try:

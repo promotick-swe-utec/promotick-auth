@@ -40,8 +40,6 @@ class LoginService:
 
 
 class CreateUserService:
-    """RN: solo ADMIN puede invocar este servicio (la verificación se hace en el handler
-    a partir del claim `cognito:groups` o del perfil del invocador)."""
 
     def __init__(self, repo: UserRepository, auth: AuthProvider):
         self._repo = repo
@@ -93,7 +91,7 @@ class UpdateUserService:
         if current is None:
             raise UserNotFoundError(f"Usuario {user_id} no existe")
 
-        # RN: auto-bloqueo — un Admin no puede desactivarse a sí mismo.
+        # un Admin no puede desactivarse a sí mismo.
         if (
             is_active is False
             and actor_user_id == user_id

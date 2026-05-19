@@ -1,4 +1,3 @@
-"""Helpers comunes para handlers detrás de API Gateway (HTTP API v2)."""
 import json
 from dataclasses import asdict, is_dataclass
 from typing import Any
@@ -30,9 +29,7 @@ def parse_body(event: dict) -> dict:
 
 
 def claims(event: dict) -> dict:
-    """Claims del JWT inyectados por el authorizer de API Gateway."""
     auth = (event.get("requestContext") or {}).get("authorizer") or {}
-    # HTTP API v2: jwt.claims ; REST API: claims directos
     return (auth.get("jwt") or {}).get("claims") or auth.get("claims") or {}
 
 

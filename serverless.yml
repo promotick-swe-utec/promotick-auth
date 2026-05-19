@@ -10,9 +10,11 @@ provider:
   iam:
     role: arn:aws:iam::${aws:accountId}:role/LabRole
   environment:
-    USERS_TABLE_NAME: ${cf:promotick-infra-dynamodb.UsersTableName}
-    USER_POOL_ID: ${cf:promotick-infra-cognito.UserPoolId}
-    USER_POOL_CLIENT_ID: ${cf:promotick-infra-cognito.UserPoolClientId}
+    USERS_TABLE_NAME: ${cf:promotick-tables-${self:provider.stage}.UsersTableName}
+    USER_POOL_ID:
+      Ref: PromotickUserPool
+    USER_POOL_CLIENT_ID:
+      Ref: PromotickUserPoolClient
   httpApi:
     cors: true
     authorizers:
@@ -23,9 +25,9 @@ provider:
           Fn::Join:
             - ""
             - - "https://cognito-idp.${aws:region}.amazonaws.com/"
-              - ${cf:promotick-infra-cognito.UserPoolId}
+              - Ref: PromotickUserPool
         audience:
-          - ${cf:promotick-infra-cognito.UserPoolClientId}
+          - Ref: PromotickUserPoolClient
 
 package:
   patterns:
@@ -36,7 +38,7 @@ package:
 functions:
   login:
     handler: src/handlers/login.handler
-    description: CU001 — Autenticación contra Cognito
+    description: Autenticación con Cognito
     events:
       - httpApi:
           method: POST
@@ -44,7 +46,7 @@ functions:
 
   createUser:
     handler: src/handlers/create_user.handler
-    description: CU003 — Crear usuario (solo ADMIN). AdminCreateUser + perfil DynamoDB
+    description: Crear usuario (solo ADMIN)
     events:
       - httpApi:
           method: POST
@@ -54,7 +56,7 @@ functions:
 
   listUsers:
     handler: src/handlers/list_users.handler
-    description: CU003 — Listar usuarios (solo ADMIN)
+    description: Listar usuarios (solo ADMIN)
     events:
       - httpApi:
           method: GET
@@ -64,10 +66,13 @@ functions:
 
   updateUser:
     handler: src/handlers/update_user.handler
-    description: CU003 — Actualizar usuario (rol, estado, nombre) — solo ADMIN
+    description: Actualizar usuario (solo ADMIN)
     events:
       - httpApi:
           method: PATCH
           path: /users/{user_id}
           authorizer:
             name: cognitoJwt
+
+resources:
+  - ${file(infrastructure/cognito.yml)}

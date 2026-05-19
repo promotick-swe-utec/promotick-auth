@@ -12,7 +12,6 @@ from src.domain.ports import (
 
 
 class CognitoAuthAdapter(AuthProvider):
-    """Implementación de AuthProvider sobre AWS Cognito User Pool."""
 
     def __init__(
         self,
@@ -24,7 +23,7 @@ class CognitoAuthAdapter(AuthProvider):
         self._client_id = client_id
         self._cognito = client or boto3.client("cognito-idp")
 
-    # ---------- AuthProvider ----------
+    # AuthProvider 
 
     def authenticate(self, email: str, password: str) -> AuthTokens:
         try:
@@ -53,7 +52,7 @@ class CognitoAuthAdapter(AuthProvider):
 
         auth = resp.get("AuthenticationResult")
         if not auth:
-            # Cognito devolvió un Challenge (NEW_PASSWORD_REQUIRED, MFA, ...).
+            # Cognito devolvió un Challenge en lugar de tokens
             raise InvalidCredentialsError(
                 f"Login requiere paso adicional: {resp.get('ChallengeName')}"
             )
@@ -104,7 +103,7 @@ class CognitoAuthAdapter(AuthProvider):
             code = e.response["Error"]["Code"]
             if code == "ResourceNotFoundException":
                 raise RuntimeError(
-                    f"El grupo Cognito '{role}' no existe. Despliega promotick-infra-cognito."
+                    f"El grupo Cognito '{role}' no existe. Verifica infrastructure/cognito.yml en promotick-auth."
                 ) from e
             raise
 

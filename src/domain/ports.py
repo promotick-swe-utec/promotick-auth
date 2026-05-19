@@ -31,13 +31,13 @@ class UserDisabledError(Exception):
 
 class UserRepository(Protocol):
     def save_if_absent(self, user: User) -> bool:
-        """True si se creó, False si ya existía (idempotencia por user_id)."""
+        ...
 
     def exists_by_email(self, email: str) -> bool:
-        """Consulta el GSI by_email."""
+        ...
 
     def find_by_email(self, email: str) -> Optional[User]:
-        """Consulta el GSI by_email y devuelve el usuario completo si existe."""
+        ...
 
     def get_by_id(self, user_id: str) -> Optional[User]:
         ...
@@ -46,15 +46,15 @@ class UserRepository(Protocol):
         ...
 
     def update(self, user: User) -> User:
-        """Persiste cambios. Requiere que el user_id exista."""
+        ...
 
 
 class AuthProvider(Protocol):
     def authenticate(self, email: str, password: str) -> AuthTokens:
-        """Devuelve los tokens emitidos por el IdP."""
+        ... # Devuelve los tokens emitidos por el IdP.
 
     def admin_create_user(self, email: str, full_name: str, role: str) -> str:
-        """Crea el usuario en el IdP y devuelve su `sub` (identificador único)."""
+        ... # Crea el usuario en el IdP y devuelve su sub (identificador único de cognito).
 
     def set_user_enabled(self, email: str, enabled: bool) -> None:
-        """Habilita/inhabilita el usuario en el IdP."""
+        ... #Habilita/inhabilita el usuario en el IdP

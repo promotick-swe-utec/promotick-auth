@@ -52,14 +52,11 @@ handler inyecta la implementación concreta.
 
 ```
 promotick-auth/
-├── serverless.yml              # Deploy: 4 Lambdas + JWT authorizer
-├── requirements.txt            # boto3 (runtime)
-├── requirements-dev.txt        # pytest, moto, mypy, ruff
-├── pytest.ini
-├── .env.example                # vars para pruebas locales
+├── serverless.yml              # Deploy: 4 Lambdas + JWT authorizer + Cognito (vía include)
+├── infrastructure/
+│   └── cognito.yml             # User Pool + App Client + Groups (incluido vía ${file(...)})
 ├── .gitignore
 ├── README.md                   # este archivo
-Promotick
 └── src/
     ├── handlers/
     │   ├── _http.py            # helpers: json_response, parse_body, claims, require_admin
@@ -78,17 +75,27 @@ Promotick
 
 ---
 
-## 3. Infraestructura consumida
+## 3. Infraestructura
 
-Todo viene de **CloudFormation Outputs** de `promotick-infra` — este repo
-NO crea infraestructura compartida.
+Este módulo es **dueño** de Cognito (User Pool + App Client + Groups). La tabla
+`promotick_users` y demás recursos compartidos viven en `promotick-infra` y se
+consumen vía CloudFormation Outputs.
 
-| Recurso             | Output consumido                                  | Var de entorno         |
+| Recurso             | Origen                                            | Var de entorno         |
 |---------------------|---------------------------------------------------|------------------------|
-| Tabla `promotick_users` | `${cf:promotick-infra-dynamodb.UsersTableName}` | `USERS_TABLE_NAME`     |
-| Cognito User Pool   | `${cf:promotick-infra-cognito.UserPoolId}`        | `USER_POOL_ID`         |
-| Cognito App Client  | `${cf:promotick-infra-cognito.UserPoolClientId}`  | `USER_POOL_CLIENT_ID`  |
+| Tabla `promotick_users` | `${cf:promotick-infra-dynamodb.UsersTableName}` (externo) | `USERS_TABLE_NAME`     |
+| Cognito User Pool   | `Ref: PromotickUserPool` (este stack)             | `USER_POOL_ID`         |
+| Cognito App Client  | `Ref: PromotickUserPoolClient` (este stack)       | `USER_POOL_CLIENT_ID`  |
 | IAM role            | `arn:aws:iam::${AWS::AccountId}:role/LabRole`     | (no aplica)            |
+
+### Outputs expuestos a otros módulos
+
+Otros repos (`promotick-products`, `-suppliers`, etc.) consumen el User Pool
+con `${cf:promotick-auth-${stage}.<Output>}`:
+
+- `UserPoolId`
+- `UserPoolArn`
+- `UserPoolClientId`
 
 ### Modelo de la tabla `promotick_users`
 
@@ -159,16 +166,11 @@ NO crea infraestructura compartida.
 
 ## 6. Desarrollo local
 
-```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements-dev.txt
-cp .env.example .env       # editar si hace falta
-pytest tests/              # unit + integración (moto, sin AWS real)
-```
+Aún no hay setup local (sin `requirements*.txt`, sin `pytest.ini`, sin
+`.env.example`). El deploy se hace directo desde la EC2 con `LabRole` — ver
+sección 7.
 
-Convenciones:
-- Lint: `ruff check src/`
-- Tipos: `mypy src/`
+Convención clave (sigue aplicando):
 - Wiring de dependencias **siempre a nivel de módulo** en el handler (cold
   start optimization). Nada de instanciar adapters dentro del `def handler`.
 
@@ -184,7 +186,9 @@ una EC2 dentro de la cuenta AWS con `LabRole` como instance profile:
 serverless deploy --stage dev
 ```
 
-Pre-requisito: la stack `promotick-infra` ya desplegada (tabla + Cognito).
+Pre-requisito: la stack `promotick-infra` ya desplegada con la tabla
+`promotick_users`. Cognito vive en este mismo stack — no hace falta nada
+externo.
 
 ---
 
@@ -192,12 +196,14 @@ Pre-requisito: la stack `promotick-infra` ya desplegada (tabla + Cognito).
 
 - Importar `boto3` desde `src/domain/*`.
 - Crear roles IAM propios — usar SIEMPRE `LabRole`.
-- Crear la tabla DynamoDB o el User Pool desde este repo — viven en `promotick-infra`.
+- Crear la tabla DynamoDB desde este repo — vive en `promotick-infra`. (El
+  User Pool sí vive aquí, en `infrastructure/cognito.yml`.)
 - Llamar a otra Lambda con `boto3.client("lambda").invoke(...)` — usar API Gateway / EventBridge.
 - Hardcodear `USERS_TABLE_NAME`, `USER_POOL_ID`, etc. — siempre por `os.environ`.
 - Permitir creación de usuario con rol distinto a `ADMIN / EJEC / VIEWER`.
 - Saltarse `ConditionExpression` en escrituras "crear si no existe".
-- Mergear sin tests (`pytest tests/` debe pasar).
+- Quitar `DeletionPolicy: Retain` / `UpdateReplacePolicy: Retain` del User Pool
+  — borraría a todos los usuarios reales si alguien hace `serverless remove`.
 
 ---
 
@@ -211,9 +217,10 @@ Pre-requisito: la stack `promotick-infra` ya desplegada (tabla + Cognito).
 
 - **Nombre:** `promotick-auth`
 - **Propósito:** módulo de identidad — login + gestión de usuarios (ABM) del
-  sistema Promotick.
-- **Stack:** Python 3.12, AWS Lambda, API Gateway (HTTP API v2), DynamoDB,
-  Cognito, Serverless Framework. Región fija `us-east-1`.
+  sistema Promotick. **Dueño** de Cognito (User Pool + App Client + Groups).
+- **Stack:** Python 3.12, AWS Lambda, API Gateway (HTTP API v2), DynamoDB
+  (consumida), Cognito (creada aquí), Serverless Framework. Región fija
+  `us-east-1`.
 - **Restricción de cuenta:** AWS Academy Learner Lab — solo `LabRole`, sin
   crear roles nuevos. Credenciales expiran cada ~4h.
 - **Tipo de repo:** uno entre varios (`promotick-products`, `-suppliers`,
@@ -238,8 +245,9 @@ Pre-requisito: la stack `promotick-infra` ya desplegada (tabla + Cognito).
    amortiza el cold start.
 7. **Variables vía `serverless.yml → environment → os.environ[...]`.**
    Nombres: `USERS_TABLE_NAME`, `USER_POOL_ID`, `USER_POOL_CLIENT_ID`.
-8. **Test obligatorio por cambio.** Unit con fakes (rápido) + integración
-   con `moto` cuando toques adapters.
+8. **Cognito vive en este repo.** El User Pool, App Client y Groups están en
+   `infrastructure/cognito.yml`, incluido desde `serverless.yml`. Otros stacks
+   lo consumen vía `${cf:promotick-auth-${stage}.UserPoolId}` etc.
 
 ### 9.3 Mapa rápido: dónde tocar qué
 
@@ -267,7 +275,7 @@ Pre-requisito: la stack `promotick-infra` ya desplegada (tabla + Cognito).
    Reusa `_http.json_response`, `parse_body`, `require_admin`.
 6. **Serverless.** Registra la función en `serverless.yml` con su trigger y
    `authorizer: cognitoJwt` si requiere autenticación.
-7. **Tests.** Unit con `FakeUserRepository` + integración con `moto`.
+7. **Tests.** (Pendiente: aún no hay suite local configurada.)
 
 ### 9.5 Anti-patrones — la IA debe detenerse y preguntar si le piden:
 
@@ -278,8 +286,13 @@ Pre-requisito: la stack `promotick-infra` ya desplegada (tabla + Cognito).
 - "Agrega el rol `SUPERVISOR` rápidamente." → No, los roles son estáticos
   por RN-0004; primero se actualiza el doc de análisis.
 - "Permite que cualquier usuario autenticado liste usuarios." → No, solo ADMIN.
-- "Sálta los tests, ya los corremos después." → No.
 - "Crea un IAM role nuevo para este Lambda." → No, `LabRole` siempre.
+- "Activa `ALLOW_USER_PASSWORD_AUTH` o `ALLOW_USER_SRP_AUTH` en el App Client."
+  → No, solo `ALLOW_ADMIN_USER_PASSWORD_AUTH` + `ALLOW_REFRESH_TOKEN_AUTH`.
+- "Saca `DeletionPolicy: Retain` del User Pool, es ruido." → No, protege a
+  los usuarios reales de un `serverless remove` accidental.
+- "Pon un trigger PostConfirmation en Cognito." → No mientras el flujo sea
+  admin-create-only; el perfil ya se persiste en `CreateUserService.create`.
 
 ### 9.6 Archivos a leer antes de proponer cambios
 

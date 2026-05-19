@@ -1,5 +1,4 @@
 import os
-
 from src.adapters.cognito_auth_adapter import CognitoAuthAdapter
 from src.adapters.dynamo_user_repository import DynamoUserRepository
 from src.domain.ports import (
@@ -10,7 +9,7 @@ from src.domain.ports import (
 from src.domain.services import LoginService
 from src.handlers._http import json_response, parse_body
 
-# --- Wiring (cold start) ----------------------------------------------------
+
 _service = LoginService(
     repo=DynamoUserRepository(table_name=os.environ["USERS_TABLE_NAME"]),
     auth=CognitoAuthAdapter(
