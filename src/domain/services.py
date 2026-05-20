@@ -155,9 +155,9 @@ class UpdateUserService:
                 email=current.email, old_role=current.role, new_role=role
             )
 
-        saved = self._repo.update(updated)
-
         if is_active is not None and is_active != current.is_active:
             self._auth.set_user_enabled(email=current.email, enabled=bool(is_active))
+
+        saved = self._repo.update(updated)
 
         return saved
