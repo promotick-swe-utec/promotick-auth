@@ -11,6 +11,7 @@ provider:
     role: arn:aws:iam::${aws:accountId}:role/LabRole
   environment:
     USERS_TABLE_NAME: ${cf:promotick-tables-${self:provider.stage}.UsersTableName}
+    AUDIT_LOGS_TABLE_NAME: ${cf:promotick-tables-${self:provider.stage}.AuditLogsTableName}
     USER_POOL_ID:
       Ref: PromotickUserPool
     USER_POOL_CLIENT_ID:

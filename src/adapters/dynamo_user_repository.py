@@ -12,7 +12,6 @@ class DynamoUserRepository(UserRepository):
         self._table = (resource or boto3.resource("dynamodb")).Table(table_name)
 
     # Helpers 
-
     @staticmethod
     def _to_item(user: User) -> dict:
         return {
@@ -40,7 +39,6 @@ class DynamoUserRepository(UserRepository):
         )
 
     # UserRepository 
-
     def save_if_absent(self, user: User) -> bool:
         try:
             self._table.put_item(
@@ -72,8 +70,6 @@ class DynamoUserRepository(UserRepository):
         return self._from_item(item) if item else None
 
     def list_all(self, limit: int = 100) -> Sequence[User]:
-        # Scan acotado por limit. Para volúmenes mayores conviene paginar
-        # con ExclusiveStartKey, pero el caso de uso (grilla admin) es bajo volumen.
         resp = self._table.scan(Limit=limit)
         return [self._from_item(it) for it in resp.get("Items", [])]
 

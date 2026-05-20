@@ -77,15 +77,11 @@ class AuthProvider(Protocol):
     def set_user_role(self, email: str, old_role: str, new_role: str) -> None:
         ... # Sincroniza el grupo del usuario en el IdP cuando cambia su rol
 
-    def respond_new_password_challenge(
-        self, email: str, new_password: str, session: str
-    ) -> AuthTokens:
+    def respond_new_password_challenge(self, email: str, new_password: str, session: str) -> AuthTokens:
         ... # Actualiza nueva contraseña
 
     def start_forgot_password(self, email: str) -> None:
         ... # Envia un código de 6 dígitos al correo del usuario
 
-    def confirm_forgot_password(
-        self, email: str, code: str, new_password: str
-    ) -> None:
+    def confirm_forgot_password(self, email: str, code: str, new_password: str) -> None:
         ... # Confirma el código y establece la nueva contraseña

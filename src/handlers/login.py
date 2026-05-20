@@ -8,7 +8,8 @@ from src.domain.ports import (
     UserNotFoundError,
 )
 from src.domain.services import LoginService
-from src.handlers._http import json_response, parse_body
+from src.shared.audit import audit_log, email_target, user_target
+from src.shared.http import json_response, parse_body
 
 
 _service = LoginService(
@@ -21,11 +22,20 @@ _service = LoginService(
 
 
 def handler(event, context):
+    email = ""
     try:
         body = parse_body(event)
         email = (body.get("email") or "").strip()
         password = body.get("password") or ""
         result = _service.login(email=email, password=password)
+        audit_log(
+            event,
+            event_type="auth.login",
+            status="success",
+            target_key=user_target(result.user.user_id),
+            status_code=200,
+            metadata={"email": email},
+        )
         return json_response(
             200,
             {
@@ -40,8 +50,17 @@ def handler(event, context):
             },
         )
     except ValueError as e:
+        audit_log(event, "auth.login", "failed", email_target(email), 400, error=str(e))
         return json_response(400, {"error": str(e)})
     except NewPasswordRequiredError as e:
+        audit_log(
+            event,
+            event_type="auth.login",
+            status="challenge",
+            target_key=email_target(email),
+            status_code=200,
+            metadata={"challenge": "NEW_PASSWORD_REQUIRED"},
+        )
         return json_response(
             200,
             {
@@ -52,8 +71,11 @@ def handler(event, context):
             },
         )
     except InvalidCredentialsError as e:
+        audit_log(event, "auth.login", "failed", email_target(email), 401, error=str(e))
         return json_response(401, {"error": str(e)})
     except UserDisabledError as e:
+        audit_log(event, "auth.login", "failed", email_target(email), 403, error=str(e))
         return json_response(403, {"error": str(e)})
     except UserNotFoundError as e:
+        audit_log(event, "auth.login", "failed", email_target(email), 404, error=str(e))
         return json_response(404, {"error": str(e)})

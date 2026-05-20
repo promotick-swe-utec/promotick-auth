@@ -66,9 +66,7 @@ class CognitoAuthAdapter(AuthProvider):
             )
         return self._tokens_from_auth_result(auth)
 
-    def respond_new_password_challenge(
-        self, email: str, new_password: str, session: str
-    ) -> AuthTokens:
+    def respond_new_password_challenge(self, email: str, new_password: str, session: str) -> AuthTokens:
         normalized = email.strip().lower()
         try:
             resp = self._cognito.admin_respond_to_auth_challenge(
@@ -236,9 +234,7 @@ class CognitoAuthAdapter(AuthProvider):
                 ) from e
             raise
 
-    def confirm_forgot_password(
-        self, email: str, code: str, new_password: str
-    ) -> None:
+    def confirm_forgot_password(self, email: str, code: str, new_password: str) -> None:
         normalized = email.strip().lower()
         try:
             self._cognito.confirm_forgot_password(
