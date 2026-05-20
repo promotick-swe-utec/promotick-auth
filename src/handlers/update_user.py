@@ -26,12 +26,19 @@ def handler(event, context):
         body = parse_body(event)
         actor = claims(event).get("custom:user_id") or claims(event).get("sub", "")
 
+        is_active_raw = body.get("is_active")
+        if is_active_raw is not None and not isinstance(is_active_raw, bool):
+            return json_response(
+                400,
+                {"error": "is_active debe ser un boolean (true/false), no un string"},
+            )
+
         user = _service.update(
             user_id=user_id,
             actor_user_id=actor,
             full_name=body.get("full_name"),
             role=body.get("role"),
-            is_active=body.get("is_active"),
+            is_active=is_active_raw,
         )
         return json_response(200, {"user": user})
     except (InvalidRoleError, ValueError) as e:
