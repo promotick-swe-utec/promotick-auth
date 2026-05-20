@@ -38,7 +38,7 @@ package:
 functions:
   login:
     handler: src/handlers/login.handler
-    description: Autenticación con Cognito
+    description: Login con Cognito
     events:
       - httpApi:
           method: POST
@@ -51,6 +51,22 @@ functions:
       - httpApi:
           method: POST
           path: /auth/complete-new-password
+
+  forgotPassword:
+    handler: src/handlers/forgot_password.handler
+    description: Envia un código de 6 dígitos al correo
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/forgot-password
+
+  confirmForgotPassword:
+    handler: src/handlers/confirm_forgot_password.handler
+    description: Confirma el código y establece la nueva contraseña
+    events:
+      - httpApi:
+          method: POST
+          path: /auth/confirm-forgot-password
 
   createUser:
     handler: src/handlers/create_user.handler

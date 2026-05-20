@@ -4,6 +4,7 @@ from botocore.exceptions import ClientError
 from src.domain.ports import (
     AuthProvider,
     AuthTokens,
+    InvalidConfirmationCodeError,
     InvalidCredentialsError,
     InvalidPasswordError,
     NewPasswordRequiredError,
@@ -178,4 +179,57 @@ class CognitoAuthAdapter(AuthProvider):
                 ) from e
             if code == "NotAuthorizedException":
                 raise UserDisabledError("No autorizado") from e
+            raise
+
+    def start_forgot_password(self, email: str) -> None:
+        normalized = email.strip().lower()
+        try:
+            self._cognito.forgot_password(
+                ClientId=self._client_id,
+                Username=normalized,
+            )
+        except ClientError as e:
+            code = e.response["Error"]["Code"]
+            if code == "UserNotFoundException":
+                return
+            if code == "LimitExceededException":
+                raise InvalidCredentialsError(
+                    "Se excedió el límite de intentos, intenta más tarde"
+                ) from e
+            if code == "NotAuthorizedException":
+                raise InvalidCredentialsError(
+                    "El usuario no puede resetear su contraseña en su estado actual"
+                ) from e
+            raise
+
+    def confirm_forgot_password(
+        self, email: str, code: str, new_password: str
+    ) -> None:
+        normalized = email.strip().lower()
+        try:
+            self._cognito.confirm_forgot_password(
+                ClientId=self._client_id,
+                Username=normalized,
+                ConfirmationCode=code,
+                Password=new_password,
+            )
+        except ClientError as e:
+            err_code = e.response["Error"]["Code"]
+            message = e.response["Error"].get("Message", "")
+            if err_code in ("CodeMismatchException", "ExpiredCodeException"):
+                raise InvalidConfirmationCodeError(
+                    "El código es inválido o ya expiró"
+                ) from e
+            if err_code == "InvalidPasswordException":
+                raise InvalidPasswordError(message) from e
+            if err_code == "InvalidParameterException":
+                raise InvalidPasswordError(message) from e
+            if err_code == "UserNotFoundException":
+                raise UserNotFoundError(
+                    f"Usuario {normalized} no existe en Cognito"
+                ) from e
+            if err_code == "LimitExceededException":
+                raise InvalidCredentialsError(
+                    "Se excedió el límite de intentos, intenta más tarde"
+                ) from e
             raise

@@ -39,6 +39,25 @@ class LoginService:
         return LoginResult(tokens=tokens, user=user)
 
 
+class ForgotPasswordService:
+    def __init__(self, auth: AuthProvider):
+        self._auth = auth
+
+    def start(self, email: str) -> None:
+        if not email:
+            raise InvalidCredentialsError("Email es obligatorio")
+        self._auth.start_forgot_password(email=email)
+
+    def confirm(self, email: str, code: str, new_password: str) -> None:
+        if not email or not code or not new_password:
+            raise InvalidCredentialsError(
+                "Email, código y nueva contraseña son obligatorios"
+            )
+        self._auth.confirm_forgot_password(
+            email=email, code=code, new_password=new_password
+        )
+
+
 class CompleteNewPasswordService:
     def __init__(self, repo: UserRepository, auth: AuthProvider):
         self._repo = repo
