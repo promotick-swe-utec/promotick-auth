@@ -136,7 +136,7 @@ class UpdateUserService:
         if current is None:
             raise UserNotFoundError(f"Usuario {user_id} no existe")
 
-        # un Admin no puede desactivarse a sí mismo.
+        # un ADMIN no puede desactivarse a sí mismo.
         if (
             is_active is False
             and actor_user_id == user_id
@@ -149,6 +149,12 @@ class UpdateUserService:
         updated = current.with_changes(
             full_name=full_name, role=role, is_active=is_active
         )
+
+        if role is not None and role != current.role:
+            self._auth.set_user_role(
+                email=current.email, old_role=current.role, new_role=role
+            )
+
         saved = self._repo.update(updated)
 
         if is_active is not None and is_active != current.is_active:

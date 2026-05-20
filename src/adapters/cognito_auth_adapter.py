@@ -181,6 +181,40 @@ class CognitoAuthAdapter(AuthProvider):
                 raise UserDisabledError("No autorizado") from e
             raise
 
+    def set_user_role(self, email: str, old_role: str, new_role: str) -> None:
+        if old_role == new_role:
+            return
+        normalized = email.strip().lower()
+        try:
+            self._cognito.admin_add_user_to_group(
+                UserPoolId=self._pool_id,
+                Username=normalized,
+                GroupName=new_role,
+            )
+        except ClientError as e:
+            code = e.response["Error"]["Code"]
+            if code == "ResourceNotFoundException":
+                raise RuntimeError(
+                    f"El grupo Cognito '{new_role}' no existe. Verifica infrastructure/cognito.yml en promotick-auth."
+                ) from e
+            if code == "UserNotFoundException":
+                raise UserNotFoundError(
+                    f"Usuario {normalized} no existe en Cognito"
+                ) from e
+            raise
+
+        try:
+            self._cognito.admin_remove_user_from_group(
+                UserPoolId=self._pool_id,
+                Username=normalized,
+                GroupName=old_role,
+            )
+        except ClientError as e:
+            code = e.response["Error"]["Code"]
+            if code in ("ResourceNotFoundException",):
+                return
+            raise
+
     def start_forgot_password(self, email: str) -> None:
         normalized = email.strip().lower()
         try:

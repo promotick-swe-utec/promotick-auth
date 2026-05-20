@@ -74,6 +74,9 @@ class AuthProvider(Protocol):
     def set_user_enabled(self, email: str, enabled: bool) -> None:
         ... #Habilita/inhabilita el usuario
 
+    def set_user_role(self, email: str, old_role: str, new_role: str) -> None:
+        ... # Sincroniza el grupo del usuario en el IdP cuando cambia su rol
+
     def respond_new_password_challenge(
         self, email: str, new_password: str, session: str
     ) -> AuthTokens:
