@@ -1,9 +1,11 @@
 import os
 from src.adapters.cognito_auth_adapter import CognitoAuthAdapter
+from src.adapters.dynamo_login_rate_limiter import DynamoLoginRateLimiter
 from src.adapters.dynamo_user_repository import DynamoUserRepository
 from src.domain.ports import (
     InvalidCredentialsError,
     NewPasswordRequiredError,
+    TooManyAttemptsError,
     UserDisabledError,
     UserNotFoundError,
 )
@@ -17,6 +19,9 @@ _service = LoginService(
     auth=CognitoAuthAdapter(
         user_pool_id=os.environ["USER_POOL_ID"],
         client_id=os.environ["USER_POOL_CLIENT_ID"],
+    ),
+    rate_limiter=DynamoLoginRateLimiter(
+        table_name=os.environ["AUDIT_LOGS_TABLE_NAME"],
     ),
 )
 
@@ -52,6 +57,20 @@ def handler(event, context):
     except ValueError as e:
         audit_log(event, "auth.login", "failed", email_target(email), 400, error=str(e))
         return json_response(400, {"error": str(e)})
+    except TooManyAttemptsError as e:
+        audit_log(
+            event,
+            "auth.login",
+            "blocked",
+            email_target(email),
+            429,
+            metadata={"retry_after": e.retry_after_seconds},
+        )
+        return json_response(
+            429,
+            {"error": str(e), "retry_after": e.retry_after_seconds},
+            headers={"Retry-After": str(e.retry_after_seconds)},
+        )
     except NewPasswordRequiredError as e:
         audit_log(
             event,

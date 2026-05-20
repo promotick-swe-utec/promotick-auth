@@ -44,6 +44,24 @@ class NewPasswordRequiredError(Exception):
         super().__init__("Se requiere establecer una nueva contraseña")
 
 
+class TooManyAttemptsError(Exception):
+    def __init__(self, retry_after_seconds: int):
+        self.retry_after_seconds = retry_after_seconds
+        super().__init__(
+            f"Demasiados intentos fallidos. Vuelve a intentar en {retry_after_seconds} segundos"
+        )
+
+
+class LoginRateLimiter(Protocol):
+    def check(self, email: str) -> None:
+        ... # Lanza TooManyAttemptsError si el email está bloqueado por exceso de fallos.
+
+
+class EmailValidator(Protocol):
+    def validate(self, email: str) -> None:
+        ... # Valida el correo
+
+
 class UserRepository(Protocol):
     def save_if_absent(self, user: User) -> bool:
         ...

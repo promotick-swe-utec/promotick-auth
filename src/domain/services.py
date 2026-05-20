@@ -4,7 +4,9 @@ from typing import Optional, Sequence
 from .ports import (
     AuthProvider,
     AuthTokens,
+    EmailValidator,
     InvalidCredentialsError,
+    LoginRateLimiter,
     UserAlreadyExistsError,
     UserDisabledError,
     UserNotFoundError,
@@ -20,14 +22,21 @@ class LoginResult:
 
 
 class LoginService:
-    def __init__(self, repo: UserRepository, auth: AuthProvider):
+    def __init__(
+        self,
+        repo: UserRepository,
+        auth: AuthProvider,
+        rate_limiter: LoginRateLimiter,
+    ):
         self._repo = repo
         self._auth = auth
+        self._rate_limiter = rate_limiter
 
     def login(self, email: str, password: str) -> LoginResult:
         if not email or not password:
             raise InvalidCredentialsError("Email y password son obligatorios")
 
+        self._rate_limiter.check(email)
         tokens = self._auth.authenticate(email=email, password=password)
         user = self._repo.find_by_email(email.strip().lower())
         if user is None:
@@ -86,12 +95,19 @@ class CompleteNewPasswordService:
 
 class CreateUserService:
 
-    def __init__(self, repo: UserRepository, auth: AuthProvider):
+    def __init__(
+        self,
+        repo: UserRepository,
+        auth: AuthProvider,
+        email_validator: EmailValidator,
+    ):
         self._repo = repo
         self._auth = auth
+        self._email_validator = email_validator
 
     def create(self, email: str, full_name: str, role: str) -> User:
         _validate_role(role)
+        self._email_validator.validate(email)
         if self._repo.exists_by_email(email):
             raise UserAlreadyExistsError(
                 "El correo electrónico ya se encuentra asociado a una cuenta existente"

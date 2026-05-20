@@ -2,6 +2,7 @@ import os
 
 from src.adapters.cognito_auth_adapter import CognitoAuthAdapter
 from src.adapters.dynamo_user_repository import DynamoUserRepository
+from src.adapters.strict_email_validator import StrictEmailValidator
 from src.domain.ports import UserAlreadyExistsError
 from src.domain.services import CreateUserService
 from src.domain.user import InvalidEmailError, InvalidRoleError
@@ -13,6 +14,9 @@ _service = CreateUserService(
     auth=CognitoAuthAdapter(
         user_pool_id=os.environ["USER_POOL_ID"],
         client_id=os.environ["USER_POOL_CLIENT_ID"],
+    ),
+    email_validator=StrictEmailValidator(
+        check_dns=os.environ.get("EMAIL_CHECK_DNS", "true").lower() == "true",
     ),
 )
 

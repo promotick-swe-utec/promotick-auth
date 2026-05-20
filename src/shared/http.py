@@ -9,10 +9,13 @@ def _default(o: Any):
     raise TypeError(f"Tipo no serializable: {type(o).__name__}")
 
 
-def json_response(status: int, body: Any) -> dict:
+def json_response(status: int, body: Any, headers: dict | None = None) -> dict:
+    response_headers = {"Content-Type": "application/json"}
+    if headers:
+        response_headers.update(headers)
     return {
         "statusCode": status,
-        "headers": {"Content-Type": "application/json"},
+        "headers": response_headers,
         "body": json.dumps(body, default=_default, ensure_ascii=False),
     }
 

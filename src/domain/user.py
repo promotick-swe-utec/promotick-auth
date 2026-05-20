@@ -1,9 +1,17 @@
+import re
+import uuid
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 from typing import Optional
-import uuid
 
 VALID_ROLES = frozenset({"ADMIN", "EJEC", "VIEWER"})
+
+_EMAIL_RE = re.compile(
+    r"^(?!.*\.\.)[A-Za-z0-9._%+\-]+"
+    r"@[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?"
+    r"(?:\.[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?)*"
+    r"\.[A-Za-z]{2,}$"
+)
 
 
 class InvalidRoleError(ValueError):
@@ -15,9 +23,14 @@ class InvalidEmailError(ValueError):
 
 
 def _normalize_email(email: str) -> str:
-    if not email or "@" not in email:
-        raise InvalidEmailError(f"Email inválido: {email!r}")
-    return email.strip().lower()
+    if not email:
+        raise InvalidEmailError("Email vacío")
+    normalized = email.strip().lower()
+    if len(normalized) > 254:
+        raise InvalidEmailError("Email demasiado largo (máx 254 caracteres)")
+    if not _EMAIL_RE.match(normalized):
+        raise InvalidEmailError(f"Formato de email inválido: {email!r}")
+    return normalized
 
 
 def _validate_role(role: str) -> str:
