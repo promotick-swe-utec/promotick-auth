@@ -14,6 +14,8 @@ from src.shared.audit import audit_log, email_target, user_target
 from src.shared.http import json_response, parse_body
 
 
+_EVENT_TYPE = "auth.login"
+
 _service = LoginService(
     repo=DynamoUserRepository(table_name=os.environ["USERS_TABLE_NAME"]),
     auth=CognitoAuthAdapter(
@@ -35,7 +37,7 @@ def handler(event, context):
         result = _service.login(email=email, password=password)
         audit_log(
             event,
-            event_type="auth.login",
+            event_type=_EVENT_TYPE,
             status="success",
             target_key=user_target(result.user.user_id),
             status_code=200,
@@ -55,12 +57,12 @@ def handler(event, context):
             },
         )
     except ValueError as e:
-        audit_log(event, "auth.login", "failed", email_target(email), 400, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 400, error=str(e))
         return json_response(400, {"error": str(e)})
     except TooManyAttemptsError as e:
         audit_log(
             event,
-            "auth.login",
+            _EVENT_TYPE,
             "blocked",
             email_target(email),
             429,
@@ -74,7 +76,7 @@ def handler(event, context):
     except NewPasswordRequiredError as e:
         audit_log(
             event,
-            event_type="auth.login",
+            event_type=_EVENT_TYPE,
             status="challenge",
             target_key=email_target(email),
             status_code=200,
@@ -90,11 +92,11 @@ def handler(event, context):
             },
         )
     except InvalidCredentialsError as e:
-        audit_log(event, "auth.login", "failed", email_target(email), 401, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 401, error=str(e))
         return json_response(401, {"error": str(e)})
     except UserDisabledError as e:
-        audit_log(event, "auth.login", "failed", email_target(email), 403, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 403, error=str(e))
         return json_response(403, {"error": str(e)})
     except UserNotFoundError as e:
-        audit_log(event, "auth.login", "failed", email_target(email), 404, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 404, error=str(e))
         return json_response(404, {"error": str(e)})

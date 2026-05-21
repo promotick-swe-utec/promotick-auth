@@ -12,6 +12,8 @@ from src.shared.audit import audit_log, email_target
 from src.shared.http import json_response, parse_body
 
 
+_EVENT_TYPE = "auth.forgot_password.confirm"
+
 _service = ForgotPasswordService(
     auth=CognitoAuthAdapter(
         user_pool_id=os.environ["USER_POOL_ID"],
@@ -30,7 +32,7 @@ def handler(event, context):
         _service.confirm(email=email, code=code, new_password=new_password)
         audit_log(
             event,
-            event_type="auth.forgot_password.confirm",
+            event_type=_EVENT_TYPE,
             status="success",
             target_key=email_target(email),
             status_code=200,
@@ -39,18 +41,12 @@ def handler(event, context):
             200,
             {"message": "Contraseña actualizada correctamente, ya puedes iniciar sesión"},
         )
-    except ValueError as e:
-        audit_log(event, "auth.forgot_password.confirm", "failed", email_target(email), 400, error=str(e))
-        return json_response(400, {"error": str(e)})
-    except InvalidConfirmationCodeError as e:
-        audit_log(event, "auth.forgot_password.confirm", "failed", email_target(email), 400, error=str(e))
-        return json_response(400, {"error": str(e)})
-    except InvalidPasswordError as e:
-        audit_log(event, "auth.forgot_password.confirm", "failed", email_target(email), 400, error=str(e))
+    except (ValueError, InvalidConfirmationCodeError, InvalidPasswordError) as e:
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 400, error=str(e))
         return json_response(400, {"error": str(e)})
     except InvalidCredentialsError as e:
-        audit_log(event, "auth.forgot_password.confirm", "failed", email_target(email), 401, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 401, error=str(e))
         return json_response(401, {"error": str(e)})
     except UserNotFoundError as e:
-        audit_log(event, "auth.forgot_password.confirm", "failed", email_target(email), 404, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 404, error=str(e))
         return json_response(404, {"error": str(e)})

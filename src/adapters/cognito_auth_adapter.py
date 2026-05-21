@@ -85,9 +85,7 @@ class CognitoAuthAdapter(AuthProvider):
         except ClientError as e:
             code = e.response["Error"]["Code"]
             message = e.response["Error"].get("Message", "")
-            if code == "InvalidPasswordException":
-                raise InvalidPasswordError(message) from e
-            if code == "InvalidParameterException":
+            if code in ("InvalidPasswordException", "InvalidParameterException"):
                 raise InvalidPasswordError(message) from e
             if code in ("NotAuthorizedException", "CodeMismatchException"):
                 raise InvalidCredentialsError(
@@ -212,7 +210,7 @@ class CognitoAuthAdapter(AuthProvider):
             )
         except ClientError as e:
             code = e.response["Error"]["Code"]
-            if code in ("ResourceNotFoundException",):
+            if code == "ResourceNotFoundException":
                 return
             raise
 
@@ -253,9 +251,7 @@ class CognitoAuthAdapter(AuthProvider):
                 raise InvalidConfirmationCodeError(
                     "El código es inválido o ya expiró"
                 ) from e
-            if err_code == "InvalidPasswordException":
-                raise InvalidPasswordError(message) from e
-            if err_code == "InvalidParameterException":
+            if err_code in ("InvalidPasswordException", "InvalidParameterException"):
                 raise InvalidPasswordError(message) from e
             if err_code == "UserNotFoundException":
                 raise UserNotFoundError(
