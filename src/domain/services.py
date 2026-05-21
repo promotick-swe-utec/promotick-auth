@@ -165,8 +165,11 @@ class UpdateUserService:
             role is not None
             and role != current.role
             and current.role == "ADMIN"
-            and actor_user_id != user_id
         ):
+            if actor_user_id == user_id:
+                raise PermissionError(
+                    "Un Administrador no puede cambiar su propio rol"
+                )
             raise PermissionError(
                 "Un Administrador no puede cambiar el rol de otro Administrador"
             )

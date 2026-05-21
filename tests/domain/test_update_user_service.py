@@ -170,19 +170,20 @@ class TestAdminEsIntocable:
         assert repo.get_by_id(otro.user_id).role == "ADMIN"
         assert not any(c[0] == "set_user_role" for c in auth.calls)
 
-    def test_admin_puede_autocambiar_su_rol(
+    def test_admin_no_puede_autocambiar_su_rol(
         self, service, repo, auth, make_user
     ):
-        """PLACEHOLDER: comportamiento actual permite auto-democión.
-
-        Si la regla debe ser 'NINGÚN rol de ADMIN se puede cambiar, ni siquiera
-        el propio', actualiza este test a `pytest.raises(PermissionError)` y la
-        condición en `UpdateUserService.update` removiendo `actor_user_id != user_id`.
-        """
+        """Ni siquiera el propio ADMIN puede degradarse — evita que el último
+        ADMIN se quede sin permisos por error."""
         admin = repo.seed(make_user(role="ADMIN", email="me@example.com"))
-        result = service.update(
-            user_id=admin.user_id,
-            actor_user_id=admin.user_id,
-            role="VIEWER",
-        )
-        assert result.role == "VIEWER"
+
+        with pytest.raises(PermissionError, match="su propio rol"):
+            service.update(
+                user_id=admin.user_id,
+                actor_user_id=admin.user_id,
+                role="VIEWER",
+            )
+
+        # No se persistió ni se sincronizó con Cognito.
+        assert repo.get_by_id(admin.user_id).role == "ADMIN"
+        assert not any(c[0] == "set_user_role" for c in auth.calls)
