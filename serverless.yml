@@ -1,9 +1,6 @@
 service: promotick-auth
 
-frameworkVersion: "4"
-
-org: promotick
-app: promotick-auth
+frameworkVersion: "3"
 
 provider:
   name: aws
