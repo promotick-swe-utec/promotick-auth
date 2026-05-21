@@ -12,7 +12,7 @@ from .ports import (
     UserNotFoundError,
     UserRepository,
 )
-from .user import User, _validate_role
+from .user import User, _validate_role, canonicalize_email
 
 
 @dataclass(frozen=True)
@@ -108,16 +108,17 @@ class CreateUserService:
     def create(self, email: str, full_name: str, role: str) -> User:
         _validate_role(role)
         self._email_validator.validate(email)
-        if self._repo.exists_by_email(email):
+        canonical = canonicalize_email(email)
+        if self._repo.exists_by_email(canonical):
             raise UserAlreadyExistsError(
                 "El correo electrónico ya se encuentra asociado a una cuenta existente"
             )
         cognito_sub = self._auth.admin_create_user(
-            email=email, full_name=full_name, role=role
+            email=canonical, full_name=full_name, role=role
         )
         user = User.new(
             cognito_sub=cognito_sub,
-            email=email,
+            email=canonical,
             full_name=full_name,
             role=role,
         )

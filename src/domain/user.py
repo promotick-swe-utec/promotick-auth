@@ -22,6 +22,9 @@ class InvalidEmailError(ValueError):
     pass
 
 
+_DOTLESS_LOCAL_DOMAINS = frozenset({"gmail.com", "googlemail.com"})
+
+
 def _normalize_email(email: str) -> str:
     if not email:
         raise InvalidEmailError("Email vacío")
@@ -31,6 +34,25 @@ def _normalize_email(email: str) -> str:
     if not _EMAIL_RE.match(normalized):
         raise InvalidEmailError(f"Formato de email inválido: {email!r}")
     return normalized
+
+
+def canonicalize_email(email: str) -> str:
+    normalized = _normalize_email(email)
+    local, domain = normalized.rsplit("@", 1)
+
+    if "+" in local:
+        local = local.split("+", 1)[0]
+
+    if domain in _DOTLESS_LOCAL_DOMAINS:
+        local = local.replace(".", "")
+        domain = "gmail.com"
+
+    if not local:
+        raise InvalidEmailError(
+            "La parte local del correo no puede quedar vacía tras la normalización"
+        )
+
+    return f"{local}@{domain}"
 
 
 def _validate_role(role: str) -> str:
@@ -61,12 +83,12 @@ class User:
         role: str,
     ) -> "User":
         now = datetime.now(timezone.utc).isoformat()
-        normalized_email = _normalize_email(email)
+        canonical_email = canonicalize_email(email)
         return cls(
             user_id=str(uuid.uuid4()),
             cognito_sub=cognito_sub,
-            email=normalized_email,
-            full_name=(full_name or "").strip() or normalized_email.split("@")[0],
+            email=canonical_email,
+            full_name=(full_name or "").strip() or canonical_email.split("@")[0],
             role=_validate_role(role),
             is_active=True,
             created_at=now,
