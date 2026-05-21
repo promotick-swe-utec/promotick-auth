@@ -4,7 +4,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      UserPoolName: ${self:service}-${self:provider.stage}
+      UserPoolName: promotick-utec-auth-${self:provider.stage}
       UsernameAttributes:
         - email
       AutoVerifiedAttributes:
@@ -50,7 +50,7 @@ Resources:
   PromotickUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: ${self:service}-${self:provider.stage}-web
+      ClientName: promotick-utec-auth-${self:provider.stage}-web
       UserPoolId:
         Ref: PromotickUserPool
       GenerateSecret: false
@@ -99,18 +99,18 @@ Outputs:
     Value:
       Ref: PromotickUserPool
     Export:
-      Name: ${self:service}-${self:provider.stage}-UserPoolId
+      Name: promotick-utec-auth-${self:provider.stage}-UserPoolId
 
   UserPoolArn:
     Description: ARN del User Pool (para enganchar triggers o leer atributos desde otros stacks)
     Value:
       Fn::GetAtt: [PromotickUserPool, Arn]
     Export:
-      Name: ${self:service}-${self:provider.stage}-UserPoolArn
+      Name: promotick-utec-auth-${self:provider.stage}-UserPoolArn
 
   UserPoolClientId:
     Description: ID del App Client web que consume el frontend
     Value:
       Ref: PromotickUserPoolClient
     Export:
-      Name: ${self:service}-${self:provider.stage}-UserPoolClientId
+      Name: promotick-utec-auth-${self:provider.stage}-UserPoolClientId
