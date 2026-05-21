@@ -1,9 +1,6 @@
 service: promotick-auth
 
 frameworkVersion: "4"
-state:
-  type: s3
-  bucketName: promotick-utec-uploads
   
 provider:
   name: aws
