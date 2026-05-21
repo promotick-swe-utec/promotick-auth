@@ -1,22 +1,11 @@
-"""Tests del StrictEmailValidator.
-
-Importante: DNS apagado por defecto en estos tests (`check_dns=False`) — la
-red no es una dependencia de tests unitarios. Hay un solo test que mockea
-socket para verificar el branch DNS.
-"""
 from __future__ import annotations
-
 import socket
 from unittest.mock import patch
-
 import pytest
-
 from src.adapters.strict_email_validator import StrictEmailValidator
 from src.domain.user import InvalidEmailError
 
-
 pytestmark = pytest.mark.unit
-
 
 @pytest.fixture
 def validator() -> StrictEmailValidator:
