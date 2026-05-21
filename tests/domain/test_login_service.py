@@ -8,9 +8,7 @@ from src.domain.ports import (
 )
 from src.domain.services import LoginService
 
-
 pytestmark = pytest.mark.unit
-
 
 @pytest.fixture
 def service(repo, auth, rate_limiter):
@@ -36,7 +34,6 @@ class TestLoginExitoso:
         service.login("alice@example.com", "x")
         assert rate_limiter.calls == ["alice@example.com"]
         assert any(c[0] == "authenticate" for c in auth.calls)
-
 
 class TestLoginValidaciones:
     @pytest.mark.parametrize(

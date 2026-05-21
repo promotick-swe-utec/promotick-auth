@@ -1,19 +1,14 @@
 from __future__ import annotations
-
 import pytest
-
 from src.domain.ports import UserAlreadyExistsError
 from src.domain.services import CreateUserService
 from src.domain.user import InvalidEmailError, InvalidRoleError
 
-
 pytestmark = pytest.mark.unit
-
 
 @pytest.fixture
 def service(repo, auth, email_validator):
     return CreateUserService(repo=repo, auth=auth, email_validator=email_validator)
-
 
 class TestCreateExitoso:
     def test_crea_usuario_y_lo_persiste(self, service, repo, auth):
@@ -31,7 +26,6 @@ class TestCreateExitoso:
         assert email_validator.calls == ["ok@example.com"]
         assert auth.calls[0][0] == "admin_create_user"
 
-
 class TestCreateValidaciones:
     def test_rechaza_rol_invalido_antes_de_tocar_validator(
         self, service, email_validator, auth
@@ -48,7 +42,6 @@ class TestCreateValidaciones:
         with pytest.raises(InvalidEmailError):
             service.create(email="bad", full_name="x", role="EJEC")
         assert auth.calls == []
-
 
 class TestCreateUnicidad:
     def test_falla_si_el_email_ya_existe(self, service, repo, auth, make_user):

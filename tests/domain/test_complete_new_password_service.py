@@ -1,8 +1,5 @@
-"""Tests del CompleteNewPasswordService (reto NEW_PASSWORD_REQUIRED)."""
 from __future__ import annotations
-
 import pytest
-
 from src.domain.ports import (
     InvalidCredentialsError,
     UserDisabledError,
@@ -10,14 +7,11 @@ from src.domain.ports import (
 )
 from src.domain.services import CompleteNewPasswordService
 
-
 pytestmark = pytest.mark.unit
-
 
 @pytest.fixture
 def service(repo, auth):
     return CompleteNewPasswordService(repo=repo, auth=auth)
-
 
 class TestComplete:
     def test_devuelve_tokens_y_perfil_cuando_todo_ok(

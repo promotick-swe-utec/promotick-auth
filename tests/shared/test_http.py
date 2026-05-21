@@ -1,17 +1,11 @@
-"""Tests de los helpers HTTP usados por todos los handlers."""
 from __future__ import annotations
-
 import base64
 import json
 from dataclasses import dataclass
-
 import pytest
-
 from src.shared.http import claims, json_response, parse_body, require_admin
 
-
 pytestmark = pytest.mark.unit
-
 
 class TestJsonResponse:
     def test_status_y_body(self):
@@ -39,7 +33,6 @@ class TestJsonResponse:
 
     def test_preserva_unicode(self):
         resp = json_response(200, {"msg": "código inválido"})
-        # ensure_ascii=False ⇒ los caracteres latinos no se escapan
         assert "código" in resp["body"]
 
 
@@ -59,7 +52,6 @@ class TestParseBody:
     def test_json_invalido_lanza_value_error(self):
         with pytest.raises(ValueError, match="JSON inválido"):
             parse_body({"body": "{not json"})
-
 
 class TestClaims:
     def test_extrae_de_jwt_authorizer(self):
@@ -88,13 +80,12 @@ class TestRequireAdmin:
         }
 
     def test_acepta_admin_como_lista(self):
-        require_admin(self._event(["ADMIN"]))  # no lanza
+        require_admin(self._event(["ADMIN"]))
 
     def test_acepta_admin_como_string(self):
         require_admin(self._event("ADMIN"))
 
     def test_acepta_admin_como_string_con_brackets(self):
-        # Cognito a veces serializa los grupos como "[ADMIN]" en el claim.
         require_admin(self._event("[ADMIN]"))
 
     def test_acepta_admin_entre_varios_grupos(self):

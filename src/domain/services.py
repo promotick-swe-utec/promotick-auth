@@ -152,14 +152,23 @@ class UpdateUserService:
         if current is None:
             raise UserNotFoundError(f"Usuario {user_id} no existe")
 
-        # un ADMIN no puede desactivarse a sí mismo.
+        if is_active is False and current.role == "ADMIN":
+            if actor_user_id == user_id:
+                raise PermissionError(
+                    "Un Administrador no puede desactivar su propia cuenta"
+                )
+            raise PermissionError(
+                "Un Administrador no puede desactivar a otro Administrador"
+            )
+            
         if (
-            is_active is False
-            and actor_user_id == user_id
+            role is not None
+            and role != current.role
             and current.role == "ADMIN"
+            and actor_user_id != user_id
         ):
             raise PermissionError(
-                "Un Administrador no puede desactivar su propia cuenta"
+                "Un Administrador no puede cambiar el rol de otro Administrador"
             )
 
         updated = current.with_changes(
