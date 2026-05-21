@@ -1,4 +1,4 @@
-# PROMOTICK-AUTH
+# PROMOTICK-AUTH DEV
 
 Módulo serverless de **identidad y gestión de usuarios** del backend de
 Promotick. Expone 7 operaciones sobre AWS Lambda + API Gateway API:
