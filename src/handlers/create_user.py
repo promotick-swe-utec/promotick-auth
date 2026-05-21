@@ -5,7 +5,6 @@ from src.adapters.dynamo_user_repository import DynamoUserRepository
 from src.adapters.strict_email_validator import StrictEmailValidator
 from src.domain.ports import UserAlreadyExistsError
 from src.domain.services import CreateUserService
-from src.domain.user import InvalidEmailError, InvalidRoleError
 from src.shared.audit import audit_log, email_target, user_target
 from src.shared.http import json_response, parse_body, require_admin
 
@@ -48,7 +47,7 @@ def handler(event, context):
         msg = f"Campo requerido faltante: {e.args[0]}"
         audit_log(event, _EVENT_TYPE, "failed", email_target(email), 400, error=msg)
         return json_response(400, {"error": msg})
-    except (InvalidEmailError, InvalidRoleError, ValueError) as e:
+    except ValueError as e:
         audit_log(event, _EVENT_TYPE, "failed", email_target(email), 400, error=str(e), metadata={"role": role})
         return json_response(400, {"error": str(e)})
     except PermissionError as e:

@@ -20,23 +20,28 @@ _DISPOSABLE_DOMAINS = frozenset(
     }
 )
 
+_GMAIL = "gmail.com"
+_HOTMAIL = "hotmail.com"
+_YAHOO = "yahoo.com"
+_OUTLOOK = "outlook.com"
+
 _DOMAIN_TYPOS = {
-    "gmial.com": "gmail.com",
-    "gmai.com": "gmail.com",
-    "gmal.com": "gmail.com",
-    "gmail.con": "gmail.com",
-    "gmail.co": "gmail.com",
-    "gnail.com": "gmail.com",
-    "hotnail.com": "hotmail.com",
-    "hotmial.com": "hotmail.com",
-    "hotmai.com": "hotmail.com",
-    "hotmail.con": "hotmail.com",
-    "yhaoo.com": "yahoo.com",
-    "yaho.com": "yahoo.com",
-    "yahoo.con": "yahoo.com",
-    "outloook.com": "outlook.com",
-    "outlok.com": "outlook.com",
-    "outlook.con": "outlook.com",
+    "gmial.com": _GMAIL,
+    "gmai.com": _GMAIL,
+    "gmal.com": _GMAIL,
+    "gmail.con": _GMAIL,
+    "gmail.co": _GMAIL,
+    "gnail.com": _GMAIL,
+    "hotnail.com": _HOTMAIL,
+    "hotmial.com": _HOTMAIL,
+    "hotmai.com": _HOTMAIL,
+    "hotmail.con": _HOTMAIL,
+    "yhaoo.com": _YAHOO,
+    "yaho.com": _YAHOO,
+    "yahoo.con": _YAHOO,
+    "outloook.com": _OUTLOOK,
+    "outlok.com": _OUTLOOK,
+    "outlook.con": _OUTLOOK,
 }
 
 

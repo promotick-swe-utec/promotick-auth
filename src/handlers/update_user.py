@@ -3,7 +3,6 @@ from src.adapters.cognito_auth_adapter import CognitoAuthAdapter
 from src.adapters.dynamo_user_repository import DynamoUserRepository
 from src.domain.ports import UserNotFoundError
 from src.domain.services import UpdateUserService
-from src.domain.user import InvalidRoleError
 from src.shared.audit import audit_log, user_target
 from src.shared.http import claims, json_response, parse_body, require_admin
 
@@ -66,7 +65,7 @@ def handler(event, context):
             metadata={k: v for k, v in changes.items() if v is not None},
         )
         return json_response(200, {"user": user})
-    except (InvalidRoleError, ValueError) as e:
+    except ValueError as e:
         audit_log(event, _EVENT_TYPE, "failed", target, 400, error=str(e))
         return json_response(400, {"error": str(e)})
     except PermissionError as e:
