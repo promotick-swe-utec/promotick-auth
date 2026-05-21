@@ -9,6 +9,8 @@ from src.domain.user import InvalidEmailError, InvalidRoleError
 from src.shared.audit import audit_log, email_target, user_target
 from src.shared.http import json_response, parse_body, require_admin
 
+_EVENT_TYPE = "user.created"
+
 _service = CreateUserService(
     repo=DynamoUserRepository(table_name=os.environ["USERS_TABLE_NAME"]),
     auth=CognitoAuthAdapter(
@@ -27,15 +29,15 @@ def handler(event, context):
         require_admin(event)
         body = parse_body(event)
         email = (body.get("email") or "").strip()
-        role = body.get("role")
+        role = body["role"]
         user = _service.create(
             email=body["email"],
             full_name=body.get("full_name", ""),
-            role=body["role"],
+            role=role,
         )
         audit_log(
             event,
-            event_type="user.created",
+            event_type=_EVENT_TYPE,
             status="success",
             target_key=user_target(user.user_id),
             status_code=201,
@@ -44,14 +46,14 @@ def handler(event, context):
         return json_response(201, {"user": user})
     except KeyError as e:
         msg = f"Campo requerido faltante: {e.args[0]}"
-        audit_log(event, "user.created", "failed", email_target(email), 400, error=msg)
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 400, error=msg)
         return json_response(400, {"error": msg})
     except (InvalidEmailError, InvalidRoleError, ValueError) as e:
-        audit_log(event, "user.created", "failed", email_target(email), 400, error=str(e), metadata={"role": role})
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 400, error=str(e), metadata={"role": role})
         return json_response(400, {"error": str(e)})
     except PermissionError as e:
-        audit_log(event, "user.created", "denied", email_target(email), 403, error=str(e))
+        audit_log(event, _EVENT_TYPE, "denied", email_target(email), 403, error=str(e))
         return json_response(403, {"error": str(e)})
     except UserAlreadyExistsError as e:
-        audit_log(event, "user.created", "failed", email_target(email), 409, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 409, error=str(e))
         return json_response(409, {"error": str(e)})

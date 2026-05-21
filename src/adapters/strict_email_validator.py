@@ -1,4 +1,3 @@
-
 import socket
 
 from src.domain.ports import EmailValidator

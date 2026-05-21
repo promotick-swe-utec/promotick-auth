@@ -13,6 +13,8 @@ from src.shared.audit import audit_log, email_target, user_target
 from src.shared.http import json_response, parse_body
 
 
+_EVENT_TYPE = "auth.complete_new_password"
+
 _service = CompleteNewPasswordService(
     repo=DynamoUserRepository(table_name=os.environ["USERS_TABLE_NAME"]),
     auth=CognitoAuthAdapter(
@@ -34,7 +36,7 @@ def handler(event, context):
         )
         audit_log(
             event,
-            event_type="auth.complete_new_password",
+            event_type=_EVENT_TYPE,
             status="success",
             target_key=user_target(result.user.user_id),
             status_code=200,
@@ -53,18 +55,15 @@ def handler(event, context):
                 "user": result.user,
             },
         )
-    except ValueError as e:
-        audit_log(event, "auth.complete_new_password", "failed", email_target(email), 400, error=str(e))
-        return json_response(400, {"error": str(e)})
-    except InvalidPasswordError as e:
-        audit_log(event, "auth.complete_new_password", "failed", email_target(email), 400, error=str(e))
+    except (ValueError, InvalidPasswordError) as e:
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 400, error=str(e))
         return json_response(400, {"error": str(e)})
     except InvalidCredentialsError as e:
-        audit_log(event, "auth.complete_new_password", "failed", email_target(email), 401, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 401, error=str(e))
         return json_response(401, {"error": str(e)})
     except UserDisabledError as e:
-        audit_log(event, "auth.complete_new_password", "failed", email_target(email), 403, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 403, error=str(e))
         return json_response(403, {"error": str(e)})
     except UserNotFoundError as e:
-        audit_log(event, "auth.complete_new_password", "failed", email_target(email), 404, error=str(e))
+        audit_log(event, _EVENT_TYPE, "failed", email_target(email), 404, error=str(e))
         return json_response(404, {"error": str(e)})

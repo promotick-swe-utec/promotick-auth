@@ -82,5 +82,5 @@ class DynamoUserRepository(UserRepository):
             return user
         except ClientError as e:
             if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-                raise UserNotFoundError(f"Usuario {user.user_id} no existe")
+                raise UserNotFoundError(f"Usuario {user.user_id} no existe") from e
             raise

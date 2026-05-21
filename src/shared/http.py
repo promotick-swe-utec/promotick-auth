@@ -1,3 +1,4 @@
+import base64
 import json
 from dataclasses import asdict, is_dataclass
 from typing import Any
@@ -23,7 +24,6 @@ def json_response(status: int, body: Any, headers: dict | None = None) -> dict:
 def parse_body(event: dict) -> dict:
     raw = event.get("body") or "{}"
     if event.get("isBase64Encoded"):
-        import base64
         raw = base64.b64decode(raw).decode("utf-8")
     try:
         return json.loads(raw) if raw else {}

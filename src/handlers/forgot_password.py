@@ -37,9 +37,6 @@ def handler(event, context):
                 )
             },
         )
-    except ValueError as e:
-        audit_log(event, "auth.forgot_password.start", "failed", email_target(email), 400, error=str(e))
-        return json_response(400, {"error": str(e)})
-    except InvalidCredentialsError as e:
+    except (ValueError, InvalidCredentialsError) as e:
         audit_log(event, "auth.forgot_password.start", "failed", email_target(email), 400, error=str(e))
         return json_response(400, {"error": str(e)})
