@@ -1,7 +1,7 @@
 # PROMOTICK-AUTH
 
 Módulo serverless de **identidad y gestión de usuarios** del backend de
-Promotick. Expone 7 operaciones sobre AWS Lambda + API Gateway HTTP API v2:
+Promotick. Expone 7 operaciones sobre AWS Lambda + API Gateway API:
 
 | Op                            | Método / Path                       | Quién puede invocarla | CU asociado |
 |-------------------------------|-------------------------------------|-----------------------|-------------|
