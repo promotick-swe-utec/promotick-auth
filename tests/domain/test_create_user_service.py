@@ -56,3 +56,33 @@ class TestCreateUnicidad:
         monkeypatch.setattr(repo, "save_if_absent", lambda u: False)
         with pytest.raises(UserAlreadyExistsError):
             service.create(email="race@example.com", full_name="x", role="EJEC")
+
+    def test_falla_si_existe_misma_cuenta_canonica_con_plus_tag(
+        self, service, repo, auth, make_user
+    ):
+        repo.seed(make_user(email="elmervssz01@gmail.com"))
+        with pytest.raises(UserAlreadyExistsError):
+            service.create(
+                email="elmervssz01+test1@gmail.com", full_name="x", role="EJEC"
+            )
+        assert auth.calls == []
+
+    def test_falla_si_existe_misma_cuenta_canonica_con_puntos_en_gmail(
+        self, service, repo, auth, make_user
+    ):
+        repo.seed(make_user(email="elmervssz01@gmail.com"))
+        with pytest.raises(UserAlreadyExistsError):
+            service.create(
+                email="el.mer.vssz01@gmail.com", full_name="x", role="EJEC"
+            )
+        assert auth.calls == []
+
+    def test_falla_si_existe_misma_cuenta_canonica_con_googlemail(
+        self, service, repo, auth, make_user
+    ):
+        repo.seed(make_user(email="elmervssz01@gmail.com"))
+        with pytest.raises(UserAlreadyExistsError):
+            service.create(
+                email="elmervssz01@googlemail.com", full_name="x", role="EJEC"
+            )
+        assert auth.calls == []
