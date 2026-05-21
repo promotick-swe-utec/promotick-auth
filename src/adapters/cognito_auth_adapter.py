@@ -41,6 +41,9 @@ class CognitoAuthAdapter(AuthProvider):
             )
         except ClientError as e:
             code = e.response["Error"]["Code"]
+            message = e.response["Error"].get("Message", "")
+            if code == "NotAuthorizedException" and "disabled" in message.lower():
+                raise UserDisabledError("Usuario inactivo") from e
             if code in ("NotAuthorizedException", "UserNotFoundException"):
                 raise InvalidCredentialsError("Credenciales inválidas") from e
             if code == "UserNotConfirmedException":
