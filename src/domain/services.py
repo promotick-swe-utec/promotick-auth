@@ -161,7 +161,7 @@ class UpdateUserService:
             raise PermissionError(
                 "Un Administrador no puede desactivar a otro Administrador"
             )
-            
+
         if (
             role is not None
             and role != current.role

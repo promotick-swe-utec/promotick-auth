@@ -1,7 +1,6 @@
 service: promotick-auth
 
 frameworkVersion: "4"
-  
 provider:
   name: aws
   runtime: python3.12
@@ -12,23 +11,17 @@ provider:
   environment:
     USERS_TABLE_NAME: ${cf:promotick-tables-${self:provider.stage}.UsersTableName}
     AUDIT_LOGS_TABLE_NAME: ${cf:promotick-tables-${self:provider.stage}.AuditLogsTableName}
-    USER_POOL_ID:
-      Ref: PromotickUserPool
-    USER_POOL_CLIENT_ID:
-      Ref: PromotickUserPoolClient
+    USER_POOL_ID: ${cf:promotick-cognito-${self:provider.stage}.UserPoolId}
+    USER_POOL_CLIENT_ID: ${cf:promotick-cognito-${self:provider.stage}.UserPoolClientId}
   httpApi:
     cors: true
     authorizers:
       cognitoJwt:
         type: jwt
         identitySource: $request.header.Authorization
-        issuerUrl:
-          Fn::Join:
-            - ""
-            - - "https://cognito-idp.${aws:region}.amazonaws.com/"
-              - Ref: PromotickUserPool
+        issuerUrl: https://cognito-idp.${aws:region}.amazonaws.com/${cf:promotick-cognito-${self:provider.stage}.UserPoolId}
         audience:
-          - Ref: PromotickUserPoolClient
+          - ${cf:promotick-cognito-${self:provider.stage}.UserPoolClientId}
 
 package:
   patterns:
@@ -98,6 +91,3 @@ functions:
           path: /users/{user_id}
           authorizer:
             name: cognitoJwt
-
-resources:
-  - ${file(infrastructure/cognito.yml)}
