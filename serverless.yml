@@ -9,19 +9,19 @@ provider:
   iam:
     role: arn:aws:iam::${aws:accountId}:role/LabRole
   environment:
-    USERS_TABLE_NAME: ${cf:promotick-tables-${self:provider.stage}.UsersTableName}
-    AUDIT_LOGS_TABLE_NAME: ${cf:promotick-tables-${self:provider.stage}.AuditLogsTableName}
-    USER_POOL_ID: ${cf:promotick-cognito-${self:provider.stage}.UserPoolId}
-    USER_POOL_CLIENT_ID: ${cf:promotick-cognito-${self:provider.stage}.UserPoolClientId}
+    USERS_TABLE_NAME: ${param:usersTableName}
+    AUDIT_LOGS_TABLE_NAME: ${param:auditLogsTableName}
+    USER_POOL_ID: ${param:userPoolId}
+    USER_POOL_CLIENT_ID: ${param:userPoolClientId}
   httpApi:
     cors: true
     authorizers:
       cognitoJwt:
         type: jwt
         identitySource: $request.header.Authorization
-        issuerUrl: https://cognito-idp.${aws:region}.amazonaws.com/${cf:promotick-cognito-${self:provider.stage}.UserPoolId}
+        issuerUrl: https://cognito-idp.${aws:region}.amazonaws.com/${param:userPoolId}
         audience:
-          - ${cf:promotick-cognito-${self:provider.stage}.UserPoolClientId}
+          - ${param:userPoolClientId}
 
 package:
   patterns:
