@@ -1,7 +1,6 @@
 service: promotick-auth
 
-frameworkVersion: "3"
-
+frameworkVersion: "4"
 provider:
   name: aws
   runtime: python3.12
