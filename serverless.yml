@@ -1,4 +1,4 @@
-service: promotick-auth
+service: promotick-utec-auth
 
 frameworkVersion: "4"
 
@@ -7,6 +7,8 @@ provider:
   runtime: python3.12
   region: us-east-1
   stage: ${opt:stage, 'dev'}
+  deploymentBucket:
+    name: ${env:PROMOTICK_STATE_BUCKET}
   iam:
     role: arn:aws:iam::${aws:accountId}:role/LabRole
   environment:
