@@ -6,9 +6,101 @@
     "_exporter_id": "43507435",
     "_collection_link": "https://go.postman.co/collection/43507435-fc188c2c-c935-46f1-a58d-94d662564fc3?source=collection_link"
   },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "eljomavisua.0101@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "adminPassword",
+      "value": "Villegas080112xd",
+      "type": "string"
+    },
+    {
+      "key": "newUserEmail",
+      "value": "elmervssz01@gmail.com",
+      "type": "string"
+    },
+    {
+      "key": "newUserFullName",
+      "value": "EjecutivoDemo",
+      "type": "string"
+    },
+    {
+      "key": "newUserRole",
+      "value": "EJEC",
+      "type": "string"
+    },
+    {
+      "key": "userPassword",
+      "value": "Villeg@s2358",
+      "type": "string"
+    },
+    {
+      "key": "tempPassword",
+      "value": "V1lleg@s080112",
+      "type": "string"
+    },
+    {
+      "key": "cognitoSession",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "forgotCode",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "targetUserId",
+      "value": "3b8ad7ab-f6a3-47b1-bcdc-d2460d10a6c4",
+      "type": "string"
+    }
+  ],
   "item": [
     {
       "name": "Login Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  const json = pm.response.json();",
+              "  if (json && json.tokens && json.tokens.access_token) {",
+              "    pm.collectionVariables.set('accessToken', json.tokens.access_token);",
+              "    console.log('accessToken guardado en collection variables');",
+              "  }",
+              "  if (json && json.session) {",
+              "    pm.collectionVariables.set('cognitoSession', json.session);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
       "request": {
         "auth": {
           "type": "noauth"
@@ -17,7 +109,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "  {                                                            \n    \"email\": \"eljomavisua.0101@gmail.com\",\n    \"password\":\"Villegas080112xd\"                                              \n  }        ",
+          "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -25,14 +117,9 @@
           }
         },
         "url": {
-          "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/auth/login",
-          "protocol": "https",
+          "raw": "{{baseUrl}}/auth/login",
           "host": [
-            "36xrs312fc",
-            "execute-api",
-            "us-east-1",
-            "amazonaws",
-            "com"
+            "{{baseUrl}}"
           ],
           "path": [
             "auth",
@@ -40,147 +127,16 @@
           ]
         }
       },
-      "response": [
-        {
-          "name": "Login Admin",
-          "originalRequest": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "  {                                                            \n    \"email\": \"eljomavisua.0101@gmail.com\",\n    \"password\":\"Villegas080112\"                                              \n  }        ",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/auth/login",
-              "protocol": "https",
-              "host": [
-                "36xrs312fc",
-                "execute-api",
-                "us-east-1",
-                "amazonaws",
-                "com"
-              ],
-              "path": [
-                "auth",
-                "login"
-              ]
-            }
-          },
-          "status": "OK",
-          "code": 200,
-          "_postman_previewlanguage": null,
-          "header": [
-            {
-              "key": "Date",
-              "value": "Wed, 20 May 2026 01:36:30 GMT"
-            },
-            {
-              "key": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "key": "Content-Length",
-              "value": "4466"
-            },
-            {
-              "key": "Connection",
-              "value": "keep-alive"
-            },
-            {
-              "key": "Apigw-Requestid",
-              "value": "do90tgnRIAMEcjA="
-            }
-          ],
-          "cookie": [],
-          "body": "{\n    \"tokens\": {\n        \"id_token\": \"eyJraWQiOiJDSXplUElxVm5xR3dhQlR1NjVJbW1GSlpOY1hqY2NrRHIzS3V1WTdTQmRJPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI4NGM4MDRlOC03MGYxLTcwNWYtYjgxOC0xZjBhMTE0NGUxMTciLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfWDk3dDZyOXlFIiwiY29nbml0bzp1c2VybmFtZSI6Ijg0YzgwNGU4LTcwZjEtNzA1Zi1iODE4LTFmMGExMTQ0ZTExNyIsIm9yaWdpbl9qdGkiOiJjOWY2MDU4Yi0wYmI2LTRlZWQtYjg0ZC01NTlkOWQwYzYwMDciLCJhdWQiOiIycDllcW5oaTQ0OWdsOW5vazIxNzJvbzc5NCIsImV2ZW50X2lkIjoiZmNlYzRjN2MtZDhhZi00YzA0LWJhZDAtZDM2MTk2MGRlZTY5IiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE3NzkyNDA5OTAsIm5hbWUiOiJQcm9tb3RpY2sgQWRtaW4iLCJleHAiOjE3NzkyNDQ1OTAsImlhdCI6MTc3OTI0MDk5MCwianRpIjoiNWU1NTkxYmMtOWUwYi00OTI0LTk3MTktNTdlNGRiNzU1MjVjIiwiZW1haWwiOiJlbGpvbWF2aXN1YS4wMTAxQGdtYWlsLmNvbSJ9.Nf-JHZmXQWJSv2ylB-IIpRT6lU5TMtu8pVvDHSRfgsknXgHcy1-cTpXXq5EHVb9Z0mCq6GvFf1IV7SwwoL8TgySjaF9GaPi17VD-O5M78G4MbqpUoYgeXHH587h663v3qM-k60U-yP_7ZfogXJ2HOZL1qczIWZbHYW6edqj9IX_hmMfPqn65qjgity2herMK3Inqc_L5QsVD4iBcb1lYr6rSIAU5apNMHrmyhd6PPPlFvmNwV4IKd46-ahFMv2KmBHNrObdxqd3AY_5thQr8XxMEvzj-YgBJwWYs9IgGj4YaoGtKGLpEh4D79lSvzCiZrFts0YzXXKRJGU55LdqjnA\",\n        \"access_token\": \"eyJraWQiOiJJSDRjcHFhMnkrNTRLTGNPaGFiWDVhN1RjV0o4dVZIUWEyT203aW5FWFU4PSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI4NGM4MDRlOC03MGYxLTcwNWYtYjgxOC0xZjBhMTE0NGUxMTciLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9YOTd0NnI5eUUiLCJjbGllbnRfaWQiOiIycDllcW5oaTQ0OWdsOW5vazIxNzJvbzc5NCIsIm9yaWdpbl9qdGkiOiJjOWY2MDU4Yi0wYmI2LTRlZWQtYjg0ZC01NTlkOWQwYzYwMDciLCJldmVudF9pZCI6ImZjZWM0YzdjLWQ4YWYtNGMwNC1iYWQwLWQzNjE5NjBkZWU2OSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3NzkyNDA5OTAsImV4cCI6MTc3OTI0NDU5MCwiaWF0IjoxNzc5MjQwOTkwLCJqdGkiOiI0OWNmYTM3NC0xZjI4LTQ1MDktYmQ1OS0wMjgwZmQ0ZTZhNzEiLCJ1c2VybmFtZSI6Ijg0YzgwNGU4LTcwZjEtNzA1Zi1iODE4LTFmMGExMTQ0ZTExNyJ9.EEF-zItx99zVFDiTFCLAdeoNjn32MyECNmTQ0tJJSqn2mXRfcRr6JATCeCSbwXNEZ_9GhvKA_L3CaPAvBDtt5W2ER2KpCiAUkHKIsAGw4QuQToDpl3enSD9YCqkpvyJPw6QdVI3GIud9BGlLNXl2qLBIXZXnPyU0KnJZjM9ZVFxb8ON3Xe3ooiOgKyeDNMDehG9Fw4fycKGLdaPHWwb9ixFPDbOD-irHt3_kwVGzzErL3_9PetHjYPzzP7V48TcyQ89nr50tn-8jiFZ8rlEXawOK87N6vyANkZzEehTTVZ-FFhNBpohzWvWZQVl2s3b10u8N9dTPgm1-tsaQKyDpxQ\",\n        \"refresh_token\": \"eyJjdHkiOiJKV1QiLCJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiUlNBLU9BRVAifQ.b7mBpvr-UHdSnm8I-8AbQL0O2gzeAeDtOSdStjEy8h6w_COM760Ik7d3mQ_SJYZZY9ots0Hhzz_WfygXKy7U0FRF6bhE1Yh93BtUYI7FQTMW0s096SwLTIzIgwMcWACWaRvYouOAxDoVHM1vwcJS8YtRxv13y5O-TPyfvcpDEHfL9TXrHYES1J_6ZgOuCuBxkLwDas3OhkYi-HOWR6MblAV38uUKazMVTyvZTcqYhCv5YT0s9bvtrXEc1HdbFEGUQuPnaOk_1uqmDuxPiI0uvqlHqJNEwSELh9LKruIXCJAupguwlkvEHEVIIGpsA_zQKZ5NKHYIl1QfjWq545KnUw.r-YIAvW_eEjxs8Ft.9DKEi1HHIqQm5Spj2M7zmNtf5ZiuxzxC9j4I81vhF3uC8Zq1WSkJh_ET0CUmeDToBlbsD6R-mGw_xhgOQ-5ZzAxT6QkOi8M6j-YBNPXfv_zeC39ahznrKXYMARNiFnLZ3167mXR6iZiANhA_DX8HyuZSrL0wOc2tQb8IvN__jq1eyYkzINNW-nnZPEFSiWQb8MjbjNcQ41xrTzSf_iXkf1Mz3go-q_-lRpa42GCA6qV2DXhdrZ4H0VpFTK8u2xq6YgdSg5jyDgRMw9dD9cj0jtYhk4I6E550v6mOqTyOFDKn_znQTuetyQ49CsLooFDJGbTFXSVy7e99LGHpE8By7Cjk-GlGawk6ibgtgQRfSuhcT_jZkJRa8B_DJsc3O6H6FHlPK0eLVpECXQ8Zfa1pu0arNAXdCZBrColmRwrL-hVaZFxF76REhLtE9XJUnJe9TSrUJdvTThLCQCE1MMdaH1M2lbhlFIaSovaGdapSBbKc_ErFpC20xhrv1NrUGfB3dR8qWtt-KDwnKqdICn0D-Q8UFqVgOMZaRHzK0QYoxpWFXIrWJFA6OUOlo8yGN6DX-Lvqtup8C7bOmv6J5DzVU0RCmW5W-71r9lCuIKGEJR6Kipa88ADH4nhshoWdAlGwHVZgCmjnfcbUqm2yTj3lE2eVbGuaf7It77aPkxOq1K_yob2ye17jnVh2Loe0QThQ51jegN_OQ8ANc6YBF6jXGj3ZZ-THXMUFwgD0AkNSoJt_Gl1qVcTjqpq78Z0yP0yEnS5vQ1889UkpF0yIdGxTgCmI2mS0fw0xZ2WzNfx8bBZt5ZpOWleboQXpEWZk4J50BiZ0l8Y971TKa-UqtEJccLjKtaU4WzR3OoSPf1l5hGTCaeI-4IdERsXfVr1FpOwYln0vUxspvAiN938hJ4OmqfON-iVjwMNqqaRumon_QepKwEwcS_Gxw-ZTZTHQkviyY_RKuBL4VdjD2E35tfa4CCVYDWi-hsFAag_XhpZjdsdIydpfVshfVLKMdZajCCcvLo_S8RgOJlSxyVx1hu7bS8g9P2z6JdeIPjSLe9j3fbCwxYm7Rr2VEb9Mo34orPmyiAoSvAw6AuOryiQupyIpfYE8jb6BrspVXDUGEIixGr4WzwFKUjcG4XVek7ZlltRHif0wpSYGUdu39oP-ENGll_JOeMBfglbq0ROY3LlywyFOZJOcE-d4tsax67rtkvMEOlXTy0cvO-JCyI6Mi2YH-YJ0_uplIU10NeVnNy5wV5RgbSMMkybBG4llbXsyiDK4DrlG_IM4a63lVIyyShoT-01p0uHqiiIq66wp2c_RD7Z_nhNX9eihz20ARA.sQI70xjxdFd0dPHDLRlQQA\",\n        \"expires_in\": 3600,\n        \"token_type\": \"Bearer\"\n    },\n    \"user\": {\n        \"user_id\": \"5c0b47fc-269f-49ef-ac1a-3a535b3e5125\",\n        \"cognito_sub\": \"84c804e8-70f1-705f-b818-1f0a1144e117\",\n        \"email\": \"eljomavisua.0101@gmail.com\",\n        \"full_name\": \"Promotick Admin\",\n        \"role\": \"ADMIN\",\n        \"is_active\": true,\n        \"created_at\": \"2026-05-19T07:41:50Z\",\n        \"updated_at\": \"2026-05-19T07:41:50Z\"\n    }\n}"
-        },
-        {
-          "name": "Login Admin",
-          "originalRequest": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "  {                                                            \n    \"email\": \"eljomavisua.0101@gmail.com\",\n    \"password\":\"Villegas080112xd\"                                              \n  }        ",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/auth/login",
-              "protocol": "https",
-              "host": [
-                "36xrs312fc",
-                "execute-api",
-                "us-east-1",
-                "amazonaws",
-                "com"
-              ],
-              "path": [
-                "auth",
-                "login"
-              ]
-            }
-          },
-          "status": "Too Many Requests",
-          "code": 429,
-          "_postman_previewlanguage": null,
-          "header": [
-            {
-              "key": "Date",
-              "value": "Wed, 20 May 2026 05:40:48 GMT"
-            },
-            {
-              "key": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "key": "Content-Length",
-              "value": "96"
-            },
-            {
-              "key": "Connection",
-              "value": "keep-alive"
-            },
-            {
-              "key": "retry-after",
-              "value": "279"
-            },
-            {
-              "key": "Apigw-Requestid",
-              "value": "dphnEiq5IAMEMrA="
-            }
-          ],
-          "cookie": [],
-          "body": "{\n    \"error\": \"Demasiados intentos fallidos. Vuelve a intentar en 279 segundos\",\n    \"retry_after\": 279\n}"
-        }
-      ]
+      "response": []
     },
     {
       "name": "Create User",
       "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "eyJraWQiOiJJSDRjcHFhMnkrNTRLTGNPaGFiWDVhN1RjV0o4dVZIUWEyT203aW5FWFU4PSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI4NGM4MDRlOC03MGYxLTcwNWYtYjgxOC0xZjBhMTE0NGUxMTciLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9YOTd0NnI5eUUiLCJjbGllbnRfaWQiOiIycDllcW5oaTQ0OWdsOW5vazIxNzJvbzc5NCIsIm9yaWdpbl9qdGkiOiI2OWEzZTQ5MC1kMTQyLTQ4MzMtYWUxNS00NWU0ZDc3MjJiNTEiLCJldmVudF9pZCI6IjhhYmE0NDNmLTVjMTItNDRlYy05MDY1LTk5NzkzYmNiZGM4ZSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3NzkyMzQyMzMsImV4cCI6MTc3OTIzNzgzMywiaWF0IjoxNzc5MjM0MjMzLCJqdGkiOiI2NWIxNzRjZi1lNjUyLTQwOGItYWIyMS1mMzQ2ODFhNGE3YmIiLCJ1c2VybmFtZSI6Ijg0YzgwNGU4LTcwZjEtNzA1Zi1iODE4LTFmMGExMTQ0ZTExNyJ9.m2YDASWZaEHoEcwV84nA2hKtUDCo26BzBeCeuhQ0vI8lEkuN5J4_fDrwlS2rzGvmb4VuB_q4vlx0_MPBKCvV6QsUiA54G6bYJ9Q4QQak7uIN6vlMbN_t4ArXSjnX0tL-BkPIbQUa5IrplnXDB92qohU8mEawsvY8Tm5bT15aUyGOZC9JwL_xl6Ro80LE-t7kqO6ryh4IfLATof7AW2RwNRKfNj4wbyuzym9l5QB2T1769aMT1VjRmG8CtnkixWm0X_Wy4KzuPDU6iZdGDxgcXB2xNK-TkvsTKdQciEnfC4e9n7RVaVnkdzQPi44eC1a6iCnclmPigo7irGoUitq_PA",
-              "type": "string"
-            }
-          ]
-        },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"email\":\"elmervssz01@gmail.com\",\n    \"full_name\":\"EjecutivoDemo\",\n    \"role\":\"EJEC\"\n}",
+          "raw": "{\n  \"email\": \"{{newUserEmail}}\",\n  \"full_name\": \"{{newUserFullName}}\",\n  \"role\": \"{{newUserRole}}\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -188,14 +144,9 @@
           }
         },
         "url": {
-          "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/users",
-          "protocol": "https",
+          "raw": "{{baseUrl}}/users",
           "host": [
-            "36xrs312fc",
-            "execute-api",
-            "us-east-1",
-            "amazonaws",
-            "com"
+            "{{baseUrl}}"
           ],
           "path": [
             "users"
@@ -206,6 +157,25 @@
     },
     {
       "name": "Login User",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "  const json = pm.response.json();",
+              "  if (json && json.tokens && json.tokens.access_token) {",
+              "    pm.collectionVariables.set('accessToken', json.tokens.access_token);",
+              "  }",
+              "  if (json && json.session) {",
+              "    pm.collectionVariables.set('cognitoSession', json.session);",
+              "  }",
+              "}"
+            ]
+          }
+        }
+      ],
       "request": {
         "auth": {
           "type": "noauth"
@@ -214,7 +184,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "  {                                                            \n    \"email\": \"elmervssz01@gmail.com\",\n    \"password\":\"Villeg@s2358\"                                              \n  }        ",
+          "raw": "{\n  \"email\": \"{{newUserEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -222,14 +192,9 @@
           }
         },
         "url": {
-          "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/auth/login",
-          "protocol": "https",
+          "raw": "{{baseUrl}}/auth/login",
           "host": [
-            "36xrs312fc",
-            "execute-api",
-            "us-east-1",
-            "amazonaws",
-            "com"
+            "{{baseUrl}}"
           ],
           "path": [
             "auth",
@@ -249,7 +214,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"email\":\"elmervssz01@gmail.com\",\n    \"new_password\":\"V1lleg@s080112\",\n    \"session\":\"AYABeLkOrg7uJRMlttK0hbYBBmIAHQABAAdTZXJ2aWNlABBDb2duaXRvVXNlclBvb2xzAAEAB2F3cy1rbXMAS2Fybjphd3M6a21zOnVzLWVhc3QtMTo3NDU2MjM0Njc1NTU6a2V5L2IxNTVhZmNhLWJmMjktNGVlZC1hZmQ4LWE5ZTA5MzY1M2RiZQC4AQIBAHgnFuRNRXNkpdS82RaDIJ87clYWGh03ZxVHIWF9KwyFfwE-wTViTyyUp9gnlno8dZT2AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMnrrQfE3L9fOdxSlRAgEQgDtUsFb8PfAfZ7OLxzGqdUqJqB3dWMAJ1XZNGUfD_Tb8kgIQmiTbpcclh39SwqGC8Yzhn-sQwtroqv6LoAIAAAAADAAAEAAAAAAAAAAAAAAAAABdPUBwiRTFbV-UY64lOcNo_____wAAAAEAAAAAAAAAAAAAAAEAAADz_f-DaJmR03Okt2v6OfVYuzIsWkmW-lrb46OF3qZeix003qjGFmZcawZwjFhfY_4QUERUz8kNzOzjkCtuYbg4wuuyCy4cfGxp8-yT4f35NNUqXoTnMBBudVLdaBUsZzCkniV0pDHYpCiN0wM7I319IglFe-IRMn4tIOSnXLUEkn68k2ZuLCwRQinRsoyu3ox7zBy2m9RtZvccCFOA2jayRf1hQb4MuMh0Pa-wXJ7eO-_qJD7CUw9CUA-E6fWNwC5xc0NHil9BPyUckrIgECNr66cS4BH9033sxeNeRxavechNAfqEzVxl8FQ4lU6fPPz4ifW8GIw3DPvti6qdK2Hl2LDyRA\"\n}",
+          "raw": "{\n  \"email\": \"{{newUserEmail}}\",\n  \"new_password\": \"{{tempPassword}}\",\n  \"session\": \"{{cognitoSession}}\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -257,14 +222,9 @@
           }
         },
         "url": {
-          "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/auth/complete-new-password",
-          "protocol": "https",
+          "raw": "{{baseUrl}}/auth/complete-new-password",
           "host": [
-            "36xrs312fc",
-            "execute-api",
-            "us-east-1",
-            "amazonaws",
-            "com"
+            "{{baseUrl}}"
           ],
           "path": [
             "auth",
@@ -277,11 +237,14 @@
     {
       "name": "Forget Password (code)",
       "request": {
+        "auth": {
+          "type": "noauth"
+        },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"email\": \"elmervssz01@gmail.com\"\n}",
+          "raw": "{\n  \"email\": \"{{newUserEmail}}\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -289,14 +252,9 @@
           }
         },
         "url": {
-          "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/auth/forgot-password",
-          "protocol": "https",
+          "raw": "{{baseUrl}}/auth/forgot-password",
           "host": [
-            "36xrs312fc",
-            "execute-api",
-            "us-east-1",
-            "amazonaws",
-            "com"
+            "{{baseUrl}}"
           ],
           "path": [
             "auth",
@@ -309,11 +267,14 @@
     {
       "name": "Confirm Forgot Password",
       "request": {
+        "auth": {
+          "type": "noauth"
+        },
         "method": "POST",
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"email\": \"elmervssz01@gmail.com\",\n    \"code\": \"349412\",\n    \"new_password\": \"Villeg@s2358\"\n}",
+          "raw": "{\n  \"email\": \"{{newUserEmail}}\",\n  \"code\": \"{{forgotCode}}\",\n  \"new_password\": \"{{userPassword}}\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -321,14 +282,9 @@
           }
         },
         "url": {
-          "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/auth/confirm-forgot-password",
-          "protocol": "https",
+          "raw": "{{baseUrl}}/auth/confirm-forgot-password",
           "host": [
-            "36xrs312fc",
-            "execute-api",
-            "us-east-1",
-            "amazonaws",
-            "com"
+            "{{baseUrl}}"
           ],
           "path": [
             "auth",
@@ -341,27 +297,12 @@
     {
       "name": "All Users",
       "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "eyJraWQiOiJJSDRjcHFhMnkrNTRLTGNPaGFiWDVhN1RjV0o4dVZIUWEyT203aW5FWFU4PSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI4NGM4MDRlOC03MGYxLTcwNWYtYjgxOC0xZjBhMTE0NGUxMTciLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9YOTd0NnI5eUUiLCJjbGllbnRfaWQiOiIycDllcW5oaTQ0OWdsOW5vazIxNzJvbzc5NCIsIm9yaWdpbl9qdGkiOiJjOWY2MDU4Yi0wYmI2LTRlZWQtYjg0ZC01NTlkOWQwYzYwMDciLCJldmVudF9pZCI6ImZjZWM0YzdjLWQ4YWYtNGMwNC1iYWQwLWQzNjE5NjBkZWU2OSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3NzkyNDA5OTAsImV4cCI6MTc3OTI0NDU5MCwiaWF0IjoxNzc5MjQwOTkwLCJqdGkiOiI0OWNmYTM3NC0xZjI4LTQ1MDktYmQ1OS0wMjgwZmQ0ZTZhNzEiLCJ1c2VybmFtZSI6Ijg0YzgwNGU4LTcwZjEtNzA1Zi1iODE4LTFmMGExMTQ0ZTExNyJ9.EEF-zItx99zVFDiTFCLAdeoNjn32MyECNmTQ0tJJSqn2mXRfcRr6JATCeCSbwXNEZ_9GhvKA_L3CaPAvBDtt5W2ER2KpCiAUkHKIsAGw4QuQToDpl3enSD9YCqkpvyJPw6QdVI3GIud9BGlLNXl2qLBIXZXnPyU0KnJZjM9ZVFxb8ON3Xe3ooiOgKyeDNMDehG9Fw4fycKGLdaPHWwb9ixFPDbOD-irHt3_kwVGzzErL3_9PetHjYPzzP7V48TcyQ89nr50tn-8jiFZ8rlEXawOK87N6vyANkZzEehTTVZ-FFhNBpohzWvWZQVl2s3b10u8N9dTPgm1-tsaQKyDpxQ",
-              "type": "string"
-            }
-          ]
-        },
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/users",
-          "protocol": "https",
+          "raw": "{{baseUrl}}/users",
           "host": [
-            "36xrs312fc",
-            "execute-api",
-            "us-east-1",
-            "amazonaws",
-            "com"
+            "{{baseUrl}}"
           ],
           "path": [
             "users"
@@ -373,28 +314,11 @@
     {
       "name": "Update Rol",
       "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "eyJraWQiOiJJSDRjcHFhMnkrNTRLTGNPaGFiWDVhN1RjV0o4dVZIUWEyT203aW5FWFU4PSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI4NGM4MDRlOC03MGYxLTcwNWYtYjgxOC0xZjBhMTE0NGUxMTciLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9YOTd0NnI5eUUiLCJjbGllbnRfaWQiOiIycDllcW5oaTQ0OWdsOW5vazIxNzJvbzc5NCIsIm9yaWdpbl9qdGkiOiJjOWY2MDU4Yi0wYmI2LTRlZWQtYjg0ZC01NTlkOWQwYzYwMDciLCJldmVudF9pZCI6ImZjZWM0YzdjLWQ4YWYtNGMwNC1iYWQwLWQzNjE5NjBkZWU2OSIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3NzkyNDA5OTAsImV4cCI6MTc3OTI0NDU5MCwiaWF0IjoxNzc5MjQwOTkwLCJqdGkiOiI0OWNmYTM3NC0xZjI4LTQ1MDktYmQ1OS0wMjgwZmQ0ZTZhNzEiLCJ1c2VybmFtZSI6Ijg0YzgwNGU4LTcwZjEtNzA1Zi1iODE4LTFmMGExMTQ0ZTExNyJ9.EEF-zItx99zVFDiTFCLAdeoNjn32MyECNmTQ0tJJSqn2mXRfcRr6JATCeCSbwXNEZ_9GhvKA_L3CaPAvBDtt5W2ER2KpCiAUkHKIsAGw4QuQToDpl3enSD9YCqkpvyJPw6QdVI3GIud9BGlLNXl2qLBIXZXnPyU0KnJZjM9ZVFxb8ON3Xe3ooiOgKyeDNMDehG9Fw4fycKGLdaPHWwb9ixFPDbOD-irHt3_kwVGzzErL3_9PetHjYPzzP7V48TcyQ89nr50tn-8jiFZ8rlEXawOK87N6vyANkZzEehTTVZ-FFhNBpohzWvWZQVl2s3b10u8N9dTPgm1-tsaQKyDpxQ",
-              "type": "string"
-            }
-          ]
-        },
         "method": "PATCH",
-        "header": [
-          {
-            "key": "{user_id}",
-            "value": "3b8ad7ab-f6a3-47b1-bcdc-d2460d10a6c4",
-            "type": "text",
-            "disabled": true
-          }
-        ],
+        "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"role\": \"VIEWER\"\n}",
+          "raw": "{\n  \"role\": \"VIEWER\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -402,18 +326,13 @@
           }
         },
         "url": {
-          "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/users/3b8ad7ab-f6a3-47b1-bcdc-d2460d10a6c4",
-          "protocol": "https",
+          "raw": "{{baseUrl}}/users/{{targetUserId}}",
           "host": [
-            "36xrs312fc",
-            "execute-api",
-            "us-east-1",
-            "amazonaws",
-            "com"
+            "{{baseUrl}}"
           ],
           "path": [
             "users",
-            "3b8ad7ab-f6a3-47b1-bcdc-d2460d10a6c4"
+            "{{targetUserId}}"
           ]
         }
       },
@@ -422,28 +341,11 @@
     {
       "name": "Desactive User",
       "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "eyJraWQiOiJJSDRjcHFhMnkrNTRLTGNPaGFiWDVhN1RjV0o4dVZIUWEyT203aW5FWFU4PSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI4NGM4MDRlOC03MGYxLTcwNWYtYjgxOC0xZjBhMTE0NGUxMTciLCJjb2duaXRvOmdyb3VwcyI6WyJBRE1JTiJdLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9YOTd0NnI5eUUiLCJjbGllbnRfaWQiOiIycDllcW5oaTQ0OWdsOW5vazIxNzJvbzc5NCIsIm9yaWdpbl9qdGkiOiIzYjkyZTZhMS1lNmM1LTQ4MzUtOTlhZC1mOGIzOTI0NmU0MTUiLCJldmVudF9pZCI6ImNmM2M2ZDQ5LTcwNzItNGVlNS04NzQ1LWMwMzVjNmQxODEwNCIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4iLCJhdXRoX3RpbWUiOjE3NzkyNDQ2MTAsImV4cCI6MTc3OTI0ODIxMCwiaWF0IjoxNzc5MjQ0NjEwLCJqdGkiOiI3OWRjNjI4MS02MTZhLTQwZjEtODQyZC0wNDFkMWQwZDk3NWIiLCJ1c2VybmFtZSI6Ijg0YzgwNGU4LTcwZjEtNzA1Zi1iODE4LTFmMGExMTQ0ZTExNyJ9.Da0Xwlp32fF_k5Zm9vEYCIDBvbo_q8xXpXQ076XDTA4-gPRI_Cri5gTaJ8oURj9vEVPydCWiFXOxzVhziwt4LtY73OE3fK6q8UbQf0-35e_oFLUM7NWHyBMBOsNXTyP_veYCsQrMT8_NEumn1URAT9wduYyVK0fe8I72_2YdBbLdUjJYe-uovpPFk_PnzE6Fgh9XvvwK8UP9ezDC5tWiFOmfCRuc0fEBHmsk3bhgDea88U8FbaNPaEOQ6J6WXCbhPoA2FE1VL12jv3LlOCsh3dkrwO2FWPuhDBXdjy-ma_oGPaQKp1C69LQe85TCSd3XIoGfjE1HqLP56X5sE5ViIw",
-              "type": "string"
-            }
-          ]
-        },
         "method": "PATCH",
-        "header": [
-          {
-            "key": "{user_id}",
-            "value": "3b8ad7ab-f6a3-47b1-bcdc-d2460d10a6c4",
-            "type": "text",
-            "disabled": true
-          }
-        ],
+        "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"is_active\": false\n}",
+          "raw": "{\n  \"is_active\": false\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -451,18 +353,13 @@
           }
         },
         "url": {
-          "raw": "https://36xrs312fc.execute-api.us-east-1.amazonaws.com/users/3b8ad7ab-f6a3-47b1-bcdc-d2460d10a6c4",
-          "protocol": "https",
+          "raw": "{{baseUrl}}/users/{{targetUserId}}",
           "host": [
-            "36xrs312fc",
-            "execute-api",
-            "us-east-1",
-            "amazonaws",
-            "com"
+            "{{baseUrl}}"
           ],
           "path": [
             "users",
-            "3b8ad7ab-f6a3-47b1-bcdc-d2460d10a6c4"
+            "{{targetUserId}}"
           ]
         }
       },
